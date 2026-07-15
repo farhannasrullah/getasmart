@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>GetasMart - UMKM Desa Getas Premium</title>
+<title>GetasMart - Satu Desa, Satu Pasar</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -166,12 +168,24 @@
 <body class="bg-background text-on-background antialiased selection:bg-secondary-container selection:text-on-secondary-container relative min-h-screen pb-24 md:pb-0">
 
 <!-- Efek Transisi Tema -->
-<div id="theme-overlay" class="theme-transition-overlay"></div>
-
 <div id="splash-screen" class="fixed inset-0 z-[99999] bg-surface flex flex-col items-center justify-center">
-  <div class="w-20 h-20 rounded-full liquid-gradient animate-pulse-liquid mb-6 shadow-2xl"></div>
-  <h1 class="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">GetasMart<span class="text-secondary animate-glow-dot">.</span></h1>
-  <p class="text-on-surface-variant font-medium mt-2 animate-pulse">Menyiapkan Pengalaman...</p>
+
+  <div class="mb-6 animate-pulse-liquid">
+    <img
+      src="icon.png"
+      alt="GetasMart Logo"
+      class="w-24 h-24 md:w-28 md:h-28 object-contain drop-shadow-2xl"
+    >
+  </div>
+
+  <h1 class="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">
+    GetasMart<span class="text-secondary animate-glow-dot">.</span>
+  </h1>
+
+  <p class="text-on-surface-variant font-medium mt-2 animate-pulse">
+    Menyiapkan Pengalaman...
+  </p>
+
 </div>
 
 <!-- Mode Siang Malam Toggle -->
@@ -186,10 +200,21 @@
 <nav class="flex flex-col bg-surface/70 dark:bg-black/70 backdrop-blur-2xl fixed top-0 w-full z-50 border-b border-white/50 dark:border-white/10 shadow-sm" id="main-nav">
   <div class="flex justify-between items-center px-4 md:px-margin-desktop py-3 md:py-4 max-w-container-max mx-auto w-full">
     <!-- Brand -->
-    <a href="#" onclick="showPage('home');return false;" class="text-xl md:text-2xl font-extrabold text-primary tracking-tight hover:scale-105 transition-transform">
-      GetasMart<span class="text-secondary animate-glow-dot">.</span>
-    </a>
-    
+<a href="#"
+onclick="showPage('home');return false;"
+class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary tracking-tight hover:scale-105 transition-transform">
+
+<img
+  src="icon.png"
+  alt="GetasMart Logo"
+  class="h-9 md:h-11 w-auto object-contain"
+/>
+
+<span>
+ GetasMart<span class="text-secondary animate-glow-dot">.</span>
+</span>
+
+</a>
     <!-- Nav Link (Khusus Desktop) -->
     <div class="hidden md:flex items-center gap-8 font-medium">
       <a href="#" data-page="home" onclick="showPage('home');return false;" class="nav-link text-on-surface-variant hover:text-primary transition-colors">Beranda</a>
