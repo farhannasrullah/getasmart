@@ -2,10 +2,24 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>GetasMart - Satu Desa, Satu Pasar</title>
+<meta name="description" content="Platform pemasaran digital resmi BUMDes Desa Getas, Kec. Singorojo, Kab. Kendal. Belanja kopi robusta, gula aren, dan kriya bambu asli langsung dari petani dan pengrajin lokal."/>
+<meta name="theme-color" content="#012d1d" media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="GetasMart - Satu Desa, Satu Pasar"/>
+<meta property="og:description" content="Belanja kopi, gula aren, dan kriya bambu asli Desa Getas langsung dari petani dan pengrajin lokal bersama BUMDes Mitra Mandiri."/>
+<meta property="og:image" content="icon.png"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="GetasMart - Satu Desa, Satu Pasar"/>
+<meta name="twitter:description" content="Belanja kopi, gula aren, dan kriya bambu asli Desa Getas langsung dari petani dan pengrajin lokal."/>
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="dns-prefetch" href="https://images.unsplash.com">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -35,15 +49,34 @@
           'golden-portrait': '1 / 1.618',
         },
         animation: {
-          'blob': 'blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1)',
+          'blob': 'blob 12s infinite alternate cubic-bezier(0.4, 0, 0.2, 1)',
+          'blob-2': 'blob-2 14s infinite alternate-reverse cubic-bezier(0.4, 0, 0.2, 1)',
           'shimmer': 'shimmer 2s infinite linear',
           'pulse-liquid': 'pulse-liquid 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           'glow-dot': 'glow-dot 2s ease-in-out infinite alternate',
+          'float': 'float 8s ease-in-out infinite',
+          'morph': 'morph 16s ease-in-out infinite',
         },
         keyframes: {
           blob: {
-            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-            '100%': { transform: 'translate(30px, 50px) scale(1.1)' },
+            '0%': { transform: 'translate(0px, 0px) scale(1) rotate(0deg)' },
+            '33%': { transform: 'translate(40px, -30px) scale(1.15) rotate(45deg)' },
+            '66%': { transform: 'translate(-20px, 40px) scale(0.9) rotate(90deg)' },
+            '100%': { transform: 'translate(30px, 50px) scale(1.1) rotate(135deg)' },
+          },
+          'blob-2': {
+            '0%': { transform: 'translate(0px, 0px) scale(1) rotate(0deg)' },
+            '33%': { transform: 'translate(-50px, 20px) scale(1.2) rotate(-30deg)' },
+            '66%': { transform: 'translate(30px, -40px) scale(0.85) rotate(-60deg)' },
+            '100%': { transform: 'translate(-40px, -20px) scale(1.05) rotate(-90deg)' },
+          },
+          float: {
+            '0%, 100%': { transform: 'translateY(0px)' },
+            '50%': { transform: 'translateY(-20px)' },
+          },
+          morph: {
+            '0%, 100%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' },
+            '50%': { borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%' },
           },
           shimmer: {
             '0%': { backgroundPosition: '-1000px 0' },
@@ -110,6 +143,12 @@
   html.dark .bg-white { background-color: #2a2c2b; color: #c1ecd4; }
   html.dark .filter-btn.bg-primary { background-color: #c1ecd4; color: #012d1d; }
 
+  /* Enhanced Animated Blobs */
+  .blob-animated {
+    transition: background-color 0.7s ease;
+    will-change: transform;
+  }
+
   /* Theme Transition Animation Overlay */
   .theme-transition-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -163,6 +202,32 @@
   /* Navbar Scroll Smoothing */
   nav#main-nav { transition: padding 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease; }
   nav#main-nav.scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+
+  /* Visible keyboard focus (a11y quality floor) */
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid #fdc2a3;
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+  html.dark a:focus-visible, html.dark button:focus-visible { outline-color: #c1ecd4; }
+
+  /* Screen-reader only utility, for live-region page announcements */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* Respect reduced motion preference: keep the site usable, drop the flourish */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .theme-transition-overlay { display: none !important; }
+  }
 </style>
 </head>
 <body class="bg-background text-on-background antialiased selection:bg-secondary-container selection:text-on-secondary-container relative min-h-screen pb-24 md:pb-0">
@@ -188,13 +253,16 @@
 
 </div>
 <div id="theme-overlay" class="theme-transition-overlay"></div>
+<div id="page-announcer" class="sr-only" role="status" aria-live="polite"></div>
 <!-- Mode Siang Malam Toggle -->
-<button id="theme-toggle" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[90] w-14 h-14 rounded-full glass-panel flex items-center justify-center shadow-xl border border-white/50 hover:scale-110 transition-transform group">
-  <span id="theme-icon" class="material-symbols-outlined text-primary group-hover:rotate-45 transition-transform duration-500">dark_mode</span>
+<button id="theme-toggle" aria-label="Ganti tampilan terang/gelap" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[90] w-14 h-14 rounded-full glass-panel flex items-center justify-center shadow-xl border border-white/50 hover:scale-110 transition-transform group">
+  <span id="theme-icon" class="material-symbols-outlined text-primary group-hover:rotate-45 transition-transform duration-500" aria-hidden="true">dark_mode</span>
 </button>
 
-<div class="fixed top-[-10%] right-[-5%] w-[50vw] h-[50vw] bg-primary-fixed-dim/30 dark:bg-primary-fixed/10 rounded-full blur-[100px] animate-blob -z-10 pointer-events-none transition-colors duration-700"></div>
-<div class="fixed bottom-[-15%] left-[-10%] w-[45vw] h-[45vw] bg-secondary-fixed-dim/30 dark:bg-secondary-fixed/10 rounded-full blur-[100px] animate-blob -z-10 pointer-events-none transition-colors duration-700" style="animation-delay: -5s;"></div>
+<!-- BACKGROUND BLOBS - ENHANCED MOVEMENT -->
+<div class="fixed top-[-10%] right-[-5%] w-[50vw] h-[50vw] bg-primary-fixed-dim/30 dark:bg-primary-fixed/10 rounded-full blur-[100px] animate-blob blob-animated -z-10 pointer-events-none transition-colors duration-700" style="border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;"></div>
+<div class="fixed bottom-[-15%] left-[-10%] w-[45vw] h-[45vw] bg-secondary-fixed-dim/30 dark:bg-secondary-fixed/10 rounded-full blur-[100px] animate-blob-2 blob-animated -z-10 pointer-events-none transition-colors duration-700" style="animation-delay: -5s; border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;"></div>
+<div class="fixed top-[40%] left-[20%] w-[30vw] h-[30vw] bg-tertiary-fixed-dim/20 dark:bg-tertiary-fixed-dim/10 rounded-full blur-[120px] animate-blob blob-animated -z-10 pointer-events-none transition-colors duration-700" style="animation-delay: -8s; animation-duration: 18s; border-radius: 40% 60% 50% 50% / 40% 50% 60% 50%;"></div>
 
 <!-- TOP BAR SEKARANG MUNCUL DI MOBILE JUGA -->
 <nav class="flex flex-col bg-surface/70 dark:bg-black/70 backdrop-blur-2xl fixed top-0 w-full z-50 border-b border-white/50 dark:border-white/10 shadow-sm" id="main-nav">
@@ -259,7 +327,7 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
       <section class="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 reveal delay-100 text-left mb-24">
         <!-- Main Highlight Card -->
         <div class="md:col-span-7 glass-card rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden flex flex-col justify-center">
-           <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary-fixed/40 dark:bg-primary-fixed/10 rounded-full blur-[60px] pointer-events-none"></div>
+           <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary-fixed/40 dark:bg-primary-fixed/10 rounded-full blur-[60px] pointer-events-none animate-blob"></div>
            <span class="px-3 py-1 bg-secondary/10 dark:bg-secondary/30 text-secondary dark:text-secondary-fixed rounded-full text-xs font-bold uppercase tracking-wider w-fit mb-4 border border-secondary/20">One Village One Market</span>
            <h3 class="text-2xl md:text-4xl font-bold text-primary mb-4 leading-snug">Sinergi Inovatif<br>UMKM & BUMDes</h3>
            <p class="text-on-surface-variant mb-8 text-base md:text-lg leading-relaxed text-balance">
@@ -407,7 +475,7 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
             <p class="text-on-surface-variant mb-8 desc-clamp">Dipetik langsung dari lereng gunung yang sejuk, menawarkan profil rasa yang berani, earthy, dengan sentuhan dark chocolate.</p>
             <div class="flex items-center justify-between mt-auto pt-4">
               <span class="text-2xl font-extrabold text-primary">Rp 45.000</span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Kopi Robusta Getas (250g)')" class="liquid-btn w-12 h-12 rounded-full flex items-center justify-center text-on-secondary-fixed shadow-md"><span class="material-symbols-outlined">shopping_cart</span></button>
+              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Kopi Robusta Getas (250g)')" aria-label="Pesan Kopi Robusta Getas via WhatsApp" class="liquid-btn w-12 h-12 rounded-full flex items-center justify-center text-on-secondary-fixed shadow-md"><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span></button>
             </div>
           </div>
         </div>
@@ -421,7 +489,7 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
             <p class="text-on-surface-variant text-sm mb-6 desc-clamp">Gula aren cetak asli hasil sadapan nira lokal. Cocok untuk masakan, jamu, dan minuman tradisional.</p>
             <div class="flex items-center justify-between mt-auto pt-2 border-t border-primary/5">
               <span class="text-lg text-secondary dark:text-secondary-fixed font-bold">Rp 28.000</span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Gula Aren Getas (500g)')" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined">add_shopping_cart</span></button>
+              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Gula Aren Getas (500g)')" aria-label="Pesan Gula Aren Getas via WhatsApp" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span></button>
             </div>
           </div>
         </div>
@@ -435,13 +503,13 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
             <p class="text-on-surface-variant text-sm mb-6 desc-clamp">Tusuk bambu ukir tradisional, kokoh dan ramah lingkungan untuk hidangan Anda.</p>
             <div class="flex items-center justify-between mt-auto pt-2 border-t border-primary/5">
               <span class="text-lg text-secondary dark:text-secondary-fixed font-bold">Rp 15.000 <span class="text-xs font-normal">/ pack</span></span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Biting Bambu Craft')" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined">add_shopping_cart</span></button>
+              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Biting Bambu Craft')" aria-label="Pesan Biting Bambu Craft via WhatsApp" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span></button>
             </div>
           </div>
         </div>
 
         <div class="catalog-item glass-card rounded-3xl md:col-span-6 overflow-hidden bg-primary/5 dark:bg-primary/10 flex flex-col justify-center items-center text-center p-8 border border-primary/20 relative reveal delay-200">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-fixed/30 dark:bg-secondary-fixed/10 rounded-bl-full filter blur-xl"></div>
+          <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-fixed/30 dark:bg-secondary-fixed/10 rounded-bl-full filter blur-xl animate-blob"></div>
           <span class="material-symbols-outlined text-4xl text-secondary dark:text-secondary-fixed mb-4">eco</span>
           <h3 class="text-xl font-bold text-primary mb-2">Sourcing Berkelanjutan</h3>
           <p class="text-on-surface-variant text-sm mb-8 text-balance">Setiap pembelian Anda langsung mendukung komunitas UMKM di Desa Getas.</p>
@@ -714,61 +782,61 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
 
       <div class="max-w-3xl mx-auto flex flex-col gap-4 mb-16" id="faq-list">
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-1" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Bagaimana cara memesan produk GetasMart?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-1" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Pilih produk di halaman Katalog, lalu tekan tombol keranjang atau tombol "Pesan via WhatsApp" pada halaman detail produk. Anda akan diarahkan ke WhatsApp kami dengan pesan pemesanan yang sudah terisi otomatis.</p>
           </div>
         </div>
 
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal delay-100">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-2" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Apa saja metode pembayaran yang tersedia?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-2" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Pembayaran dapat dilakukan melalui transfer bank, QRIS, maupun tunai (COD) khusus untuk wilayah sekitar Kecamatan Singorojo dan sekitarnya. Detail pembayaran akan diinformasikan oleh admin melalui WhatsApp setelah pesanan dikonfirmasi.</p>
           </div>
         </div>
 
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-3" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Apakah produk bisa dikirim ke luar kota?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-3" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Bisa. Kami melayani pengiriman ke seluruh Indonesia menggunakan jasa ekspedisi pilihan. Ongkos kirim menyesuaikan berat paket dan tujuan, dan akan dihitungkan oleh admin saat proses pemesanan.</p>
           </div>
         </div>
 
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal delay-100">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-4" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Apakah tersedia pembelian dalam jumlah besar (grosir)?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-4" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Tentu. Kami membuka peluang pemesanan grosir maupun kerja sama kemitraan untuk toko, kafe, maupun reseller. Hubungi kami melalui WhatsApp atau menu "Hubungi Kemitraan" pada halaman Tentang untuk penawaran harga khusus.</p>
           </div>
         </div>
 
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-5" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Apakah produk GetasMart benar-benar dari Desa Getas?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-5" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Ya. Seluruh produk bersumber langsung dari petani dan pengrajin di Desa Getas, Kecamatan Singorojo, Kabupaten Kendal, dan dikelola bersama BUMDes Mitra Mandiri untuk menjamin keaslian dan keberlanjutannya.</p>
           </div>
         </div>
 
         <div class="faq-item glass-card rounded-3xl overflow-hidden reveal delay-100">
-          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+          <button onclick="toggleFaq(this)" aria-expanded="false" aria-controls="faq-answer-6" class="w-full flex items-center justify-between p-6 text-left">
             <span class="font-bold text-primary text-lg pr-4">Berapa lama masa simpan kopi dan gula aren?</span>
-            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0">add</span>
+            <span class="material-symbols-outlined faq-icon text-primary flex-shrink-0" aria-hidden="true">add</span>
           </button>
-          <div class="faq-answer px-6">
+          <div id="faq-answer-6" class="faq-answer px-6">
             <p class="text-on-surface-variant pb-6 text-balance">Kopi bubuk tahan hingga 6 bulan bila disimpan di wadah kedap udara dan tempat kering. Gula aren cetak dapat bertahan 8-12 bulan pada suhu ruang, jauh dari sinar matahari langsung.</p>
           </div>
         </div>
@@ -792,8 +860,8 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
       <h2 class="text-2xl font-extrabold text-white mb-4">GetasMart<span class="text-secondary-container">.</span></h2>
       <p class="text-primary-fixed-dim mb-6 text-balance">Mengangkat potensi UMKM lokal berkualitas tinggi dari Desa Getas, Kendal ke pasar global. Organik, Otentik, Berkelanjutan.</p>
       <div class="flex gap-4">
-        <a href="#" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary-container hover:text-primary transition-all"><span class="material-symbols-outlined">public</span></a>
-        <a href="#" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary-container hover:text-primary transition-all"><span class="material-symbols-outlined">share</span></a>
+        <a href="#" aria-label="Kunjungi situs kami" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary-container hover:text-primary transition-all"><span class="material-symbols-outlined" aria-hidden="true">public</span></a>
+        <a href="#" aria-label="Bagikan GetasMart" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary-container hover:text-primary transition-all"><span class="material-symbols-outlined" aria-hidden="true">share</span></a>
       </div>
     </div>
     
@@ -882,7 +950,25 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
     themeIcon.textContent = 'dark_mode';
   }
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function applyTheme(toDark) {
+    if (toDark) {
+      htmlEl.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      themeIcon.textContent = 'light_mode';
+    } else {
+      htmlEl.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      themeIcon.textContent = 'dark_mode';
+    }
+  }
+
   themeToggleBtn.addEventListener('click', () => {
+    if (prefersReducedMotion) {
+      applyTheme(!htmlEl.classList.contains('dark'));
+      return;
+    }
     overlay.style.transition = 'none';
     overlay.style.clipPath = 'circle(0% at 90% 90%)';
     
@@ -932,7 +1018,7 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
     }
     
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodedMessage}`, '_blank');
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodedMessage}`, '_blank', 'noopener,noreferrer');
   }
 
   function filterCatalog(category, btnElement) {
@@ -1044,9 +1130,14 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
   function toggleFaq(btnElement) {
     const item = btnElement.closest('.faq-item');
     const wasOpen = item.classList.contains('faq-open');
-    document.querySelectorAll('.faq-item.faq-open').forEach(el => el.classList.remove('faq-open'));
+    document.querySelectorAll('.faq-item.faq-open').forEach(el => {
+      el.classList.remove('faq-open');
+      const btn = el.querySelector('button');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
     if (!wasOpen) {
       item.classList.add('faq-open');
+      btnElement.setAttribute('aria-expanded', 'true');
     }
   }
 
@@ -1067,6 +1158,11 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
   let isTransitioning = false; 
   const pageOrder = ['home', 'catalog', 'village', 'about', 'faq'];
   let currentPageIndex = 0;
+  const PAGE_TITLES = {
+    home: 'Beranda', catalog: 'Katalog', product: 'Detail Produk',
+    village: 'Desa Kami', about: 'Tentang', faq: 'FAQ'
+  };
+  const pageAnnouncer = document.getElementById('page-announcer');
 
   function showPage(name, isInitial = false) {
     if (isTransitioning && !isInitial) return;
@@ -1080,10 +1176,14 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
     isTransitioning = true; 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active-link'));
-    document.querySelectorAll('.nav-link[data-page="' + name + '"]').forEach(a => a.classList.add('active-link'));
-    document.querySelectorAll('.bnav-item').forEach(a => a.classList.remove('active-item'));
-    document.querySelectorAll('.bnav-item[data-page="' + name + '"]').forEach(a => a.classList.add('active-item'));
+    if (pageAnnouncer && PAGE_TITLES[name]) {
+      pageAnnouncer.textContent = 'Halaman ' + PAGE_TITLES[name];
+    }
+
+    document.querySelectorAll('.nav-link').forEach(a => { a.classList.remove('active-link'); a.removeAttribute('aria-current'); });
+    document.querySelectorAll('.nav-link[data-page="' + name + '"]').forEach(a => { a.classList.add('active-link'); a.setAttribute('aria-current', 'page'); });
+    document.querySelectorAll('.bnav-item').forEach(a => { a.classList.remove('active-item'); a.removeAttribute('aria-current'); });
+    document.querySelectorAll('.bnav-item[data-page="' + name + '"]').forEach(a => { a.classList.add('active-item'); a.setAttribute('aria-current', 'page'); });
 
     let hasActive = false;
     const pages = document.querySelectorAll('.page');
@@ -1197,14 +1297,16 @@ class="flex items-center gap-3 text-xl md:text-2xl font-extrabold text-primary t
     });
   }
 
-  /* Navbar Effect on Scroll */
+  /* Navbar Effect on Scroll (rAF-throttled for smoother low-end performance) */
+  const mainNavEl = document.getElementById('main-nav');
+  let navScrollTicking = false;
   window.addEventListener('scroll', () => {
-    const nav = document.getElementById('main-nav');
-    if (window.scrollY > 50) {
-      nav.classList.add('scrolled');
-    } else {
-      nav.classList.remove('scrolled');
-    }
+    if (navScrollTicking) return;
+    navScrollTicking = true;
+    requestAnimationFrame(() => {
+      mainNavEl.classList.toggle('scrolled', window.scrollY > 50);
+      navScrollTicking = false;
+    });
   }, { passive: true });
 
 </script>
