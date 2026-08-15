@@ -6,38 +6,84 @@
 <title>Admin Panel - GetasMart</title>
 <meta name="robots" content="noindex, nofollow"/>
 <link rel="icon" type="image/png" href="icon.png"/>
-<!-- Tailwind CDN — form ini pakai banyak class Tailwind (bg-gray-50, rounded-2xl, dst),
-     harus dimuat supaya styling-nya kepakai. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: "#012d1d",
+          "primary-soft": "#1b4332",
+          secondary: "#80543b",
+          "surface-page": "#f8f9fa",
+          "surface-soft": "#edeeef",
+          outline: "#717973"
+        },
+        fontFamily: {
+          sans: ["Plus Jakarta Sans", "sans-serif"]
+        },
+        borderRadius: {
+          "2xl": "1rem",
+          "3xl": "1.5rem"
+        }
+      }
+    }
+  };
+</script>
 <style>
-  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #f8f9fa;
+    color: #191c1d;
+  }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: #01573544; border-radius: 4px; }
-  /* Panah default <details> diganti biar konsisten sama desain */
+  ::-webkit-scrollbar-thumb { background: rgba(1,45,29,.28); border-radius: 999px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   details > summary { list-style: none; cursor: pointer; }
   details > summary::-webkit-details-marker { display: none; }
+  .admin-shell {
+    background:
+      radial-gradient(circle at 90% 0%, rgba(165,208,185,.20), transparent 28%),
+      radial-gradient(circle at 0% 100%, rgba(255,219,202,.18), transparent 28%),
+      #f8f9fa;
+  }
+  .admin-card {
+    border: 1px solid rgba(1,45,29,.08);
+    box-shadow: 0 8px 30px rgba(1,45,29,.06);
+  }
+  .admin-input {
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .admin-input:focus {
+    border-color: rgba(1,45,29,.45);
+    box-shadow: 0 0 0 3px rgba(1,45,29,.10);
+  }
 </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="admin-shell min-h-screen">
 
   <!-- ============ LOGIN GATE ============ -->
   <div id="login-screen" class="min-h-screen flex items-center justify-center px-4">
-    <form id="login-form" class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-      <h1 class="text-xl font-bold text-[#012d1d] mb-1">GetasMart Admin</h1>
-      <p class="text-sm text-gray-500 mb-6">Masukkan password admin untuk masuk.</p>
+    <form id="login-form" class="admin-card bg-white/85 backdrop-blur-md rounded-3xl p-6 md:p-8 w-full max-w-sm">
+      <h1 class="text-2xl font-extrabold text-primary tracking-tight mb-1">GetasMart Admin</h1>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">Masukkan password admin untuk masuk.</p>
       <input id="login-password" type="password" placeholder="Password" required
-        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/40"/>
+        class="admin-input w-full border border-gray-300 bg-white/80 rounded-xl px-4 py-3 mb-3 focus:outline-none"/>
       <p id="login-error" class="text-red-500 text-sm mb-3 hidden">Password salah.</p>
-      <button type="submit" class="w-full bg-[#012d1d] text-white font-semibold rounded-lg py-2.5 hover:opacity-90 transition">Masuk</button>
+      <button type="submit" class="w-full bg-primary text-white font-semibold rounded-xl py-3 hover:opacity-90 transition shadow-lg shadow-primary/10">Masuk</button>
       <a href="/" class="block text-center text-sm text-gray-400 mt-4 hover:underline">&larr; Kembali ke situs</a>
     </form>
   </div>
 
   <!-- ============ ADMIN DASHBOARD ============ -->
   <div id="admin-screen" class="hidden">
-    <header class="bg-[#012d1d] text-white px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-md">
+    <header class="bg-primary/95 backdrop-blur-md text-white px-4 md:px-8 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-lg shadow-primary/10">
       <div>
-        <h1 class="font-bold text-lg">GetasMart Admin</h1>
+        <h1 class="font-extrabold text-lg tracking-tight">GetasMart<span class="text-[#fdc2a3]">.</span> Admin</h1>
         <p class="text-xs text-white/60">Kelola produk katalog</p>
       </div>
       <div class="flex items-center gap-3">
@@ -46,33 +92,35 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 md:px-8 py-6">
+    <main class="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
       <div class="flex items-center justify-between mb-5">
         <div>
-          <h2 class="text-lg font-bold text-gray-800">Daftar Produk</h2>
+          <h2 class="text-xl font-bold text-gray-800">Daftar Produk</h2>
           <p id="product-count" class="text-sm text-gray-500"></p>
         </div>
-        <button id="add-product-btn" class="bg-[#012d1d] text-white font-semibold text-sm px-4 py-2.5 rounded-lg hover:opacity-90 transition flex items-center gap-1.5">
+        <button id="add-product-btn" class="bg-primary text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:opacity-90 transition flex items-center gap-1.5 shadow-md shadow-primary/10">
           + Tambah Produk
         </button>
       </div>
 
       <div id="load-error" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-4 mb-4"></div>
 
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-500 text-left">
+      <div class="admin-card bg-white/90 rounded-3xl overflow-hidden">
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[760px]">
+          <thead class="bg-surface-soft/70 text-gray-500 text-left">
             <tr>
-              <th class="px-4 py-3 font-semibold">Produk</th>
-              <th class="px-4 py-3 font-semibold">Kategori</th>
-              <th class="px-4 py-3 font-semibold">Harga</th>
-              <th class="px-4 py-3 font-semibold">Urutan</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
+              <th class="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Produk</th>
+              <th class="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Kategori</th>
+              <th class="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Harga</th>
+              <th class="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Urutan</th>
+              <th class="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Status</th>
               <th class="px-4 py-3 font-semibold text-right">Aksi</th>
             </tr>
           </thead>
           <tbody id="product-table-body" class="divide-y divide-gray-100"></tbody>
         </table>
+        </div>
         <p id="empty-state" class="hidden text-center text-gray-400 py-10 text-sm">Belum ada produk. Klik "Tambah Produk" untuk mulai.</p>
       </div>
     </main>
@@ -80,12 +128,12 @@
 
   <!-- ============ MODAL FORM PRODUK ============ -->
   <div id="product-modal" class="hidden fixed inset-0 bg-black/50 z-30 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-      <div class="px-6 py-4 border-b flex items-center justify-between sticky top-0 bg-white">
+    <div class="admin-card bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-5 md:px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur z-10">
         <h3 id="modal-title" class="font-bold text-gray-800">Tambah Produk</h3>
         <button id="modal-close-btn" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
       </div>
-      <form id="product-form" class="p-6 flex flex-col gap-4">
+      <form id="product-form" class="p-5 md:p-6 flex flex-col gap-4">
         <input type="hidden" id="f-id"/>
 
         <!-- ===== WAJIB DIISI ===== -->
@@ -93,58 +141,58 @@
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">Nama Produk *</label>
-          <input id="f-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/30"/>
+          <input id="f-name" required class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-gray-500 mb-1">Kategori (filter) *</label>
-            <select id="f-category" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            <select id="f-category" required class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none">
               <option value="kopi">Kopi</option>
               <option value="gula">Gula Aren</option>
-              <option value="Lainnya">Lainnya</option>
+              <option value="lainnya">Lainnya</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-500 mb-1">Harga (Rp, tanpa titik) *</label>
-            <input id="f-price" type="number" min="0" required placeholder="45000" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            <input id="f-price" type="number" min="0" required placeholder="45000" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">Deskripsi *</label>
-          <textarea id="f-desc" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea>
+          <textarea id="f-desc" required rows="3" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"></textarea>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Utama *</label>
-          <input id="f-imgMain" required placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+          <input id="f-imgMain" required placeholder="https://..." class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
         </div>
 
         <!-- ===== OPSIONAL — otomatis diisi kalau kosong ===== -->
-        <details class="border border-gray-200 rounded-lg mt-2">
-          <summary class="px-4 py-3 text-sm font-semibold text-gray-600 flex items-center justify-between">
+        <details class="border border-gray-200 rounded-2xl mt-2 bg-surface-page/50">
+          <summary class="px-4 py-3.5 text-sm font-semibold text-gray-600 flex items-center justify-between">
             Detail tambahan (opsional)
             <span class="text-gray-400 text-xs font-normal">semua otomatis diisi kalau dikosongkan &darr;</span>
           </summary>
-          <div class="p-4 pt-2 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 pt-3 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Label Kategori</label>
-              <input id="f-categoryLabel" placeholder="kosongkan = otomatis ikut kategori" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-categoryLabel" placeholder="kosongkan = otomatis ikut kategori" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Satuan</label>
-              <input id="f-unit" placeholder="kosongkan = / pcs" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-unit" placeholder="kosongkan = / pcs" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
 
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Badge</label>
-              <input id="f-badge" placeholder="kosongkan = Produk Pilihan" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-badge" placeholder="kosongkan = Produk Pilihan" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Ukuran Card Katalog</label>
-              <select id="f-size" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+              <select id="f-size" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none">
                 <option value="normal">Normal</option>
                 <option value="large">Besar (highlight)</option>
               </select>
@@ -152,51 +200,57 @@
 
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 1</label>
-              <input id="f-img1" placeholder="kosongkan = pakai gambar utama" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-img1" placeholder="kosongkan = pakai gambar utama" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 2</label>
-              <input id="f-img2" placeholder="kosongkan = pakai gambar utama" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-img2" placeholder="kosongkan = pakai gambar utama" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
 
             <div class="md:col-span-2 border-t border-gray-100 pt-3">
               <p class="text-xs font-semibold text-gray-500 mb-2">Spesifikasi 1 <span class="font-normal text-gray-400">(kosongkan = Kualitas / Premium / 80%)</span></p>
               <div class="grid grid-cols-3 gap-2">
-                <input id="f-spec1Label" placeholder="Label" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                <input id="f-spec1Value" placeholder="Nilai" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                <input id="f-spec1Pct" placeholder="80%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec1Label" placeholder="Label" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
+                <input id="f-spec1Value" placeholder="Nilai" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
+                <input id="f-spec1Pct" placeholder="80%" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
               </div>
             </div>
 
             <div class="md:col-span-2">
               <p class="text-xs font-semibold text-gray-500 mb-2">Spesifikasi 2 <span class="font-normal text-gray-400">(kosongkan = Keaslian / 100% Asli / 100%)</span></p>
               <div class="grid grid-cols-3 gap-2">
-                <input id="f-spec2Label" placeholder="Label" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                <input id="f-spec2Value" placeholder="Nilai" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-                <input id="f-spec2Pct" placeholder="100%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec2Label" placeholder="Label" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
+                <input id="f-spec2Value" placeholder="Nilai" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
+                <input id="f-spec2Pct" placeholder="100%" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
               </div>
             </div>
 
             <div class="md:col-span-2 border-t border-gray-100 pt-3">
               <label class="block text-xs font-semibold text-gray-500 mb-1">Pesan WhatsApp (nama produk yang dikirim saat order)</label>
-              <input id="f-waMessage" placeholder="kosongkan = pakai Nama Produk" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-waMessage" placeholder="kosongkan = pakai Nama Produk" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
 
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Urutan Tampil (kecil = duluan)</label>
-              <input id="f-order" type="number" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              <input id="f-order" type="number" value="0" class="admin-input w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none"/>
             </div>
-            <div class="flex items-center gap-2 mt-6">
-              <input id="f-active" type="checkbox" checked class="w-4 h-4"/>
-              <label for="f-active" class="text-sm text-gray-700">Aktif (tampil di katalog)</label>
+            <div class="flex flex-col gap-2 mt-5 md:mt-6">
+              <label class="flex items-center gap-2">
+                <input id="f-active" type="checkbox" checked class="w-4 h-4 rounded"/>
+                <span class="text-sm text-gray-700">Aktif (tampil di katalog)</span>
+              </label>
+              <label class="flex items-center gap-2">
+                <input id="f-featured" type="checkbox" class="w-4 h-4 rounded"/>
+                <span class="text-sm text-gray-700">Produk Pilihan (tampil di Beranda)</span>
+              </label>
             </div>
 
           </div>
         </details>
 
         <div class="flex items-center gap-3 pt-4 border-t mt-2">
-          <button type="submit" id="save-btn" class="bg-[#012d1d] text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 transition">Simpan Produk</button>
-          <button type="button" id="modal-cancel-btn" class="text-gray-500 text-sm px-5 py-2.5 hover:bg-gray-100 rounded-lg transition">Batal</button>
+          <button type="submit" id="save-btn" class="bg-primary text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition shadow-md shadow-primary/10">Simpan Produk</button>
+          <button type="button" id="modal-cancel-btn" class="text-gray-500 text-sm px-5 py-2.5 hover:bg-gray-100 rounded-xl transition">Batal</button>
           <span id="save-status" class="text-sm text-gray-400"></span>
         </div>
       </form>

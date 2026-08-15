@@ -98,6 +98,161 @@
     }
   }
 </script>
+
+<style id="catalog-mobile-3-grid">
+@media (max-width: 767px) {
+  /* Maksimal 2 produk per baris */
+  #page-catalog #catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Kartu mengikuti isi; tidak dipaksa square */
+  #page-catalog #catalog-dynamic-items > .catalog-item,
+  #page-catalog #catalog-dynamic-items > div {
+    grid-column: span 1 / span 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* HANYA GAMBAR yang 1:1 */
+  #page-catalog #catalog-dynamic-items .image-wrapper {
+    width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+    overflow: hidden !important;
+  }
+
+  #page-catalog #catalog-dynamic-items .image-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  /* Bagian bawah mengikuti konten/natural height */
+  #page-catalog #catalog-dynamic-items > .catalog-item > .p-5,
+  #page-catalog #catalog-dynamic-items > .catalog-item > .p-6,
+  #page-catalog #catalog-dynamic-items > div > .p-5,
+  #page-catalog #catalog-dynamic-items > div > .p-6 {
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 10px !important;
+    flex: 0 0 auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Judul */
+  #page-catalog #catalog-dynamic-items .p-5 h3,
+  #page-catalog #catalog-dynamic-items .p-6 h3 {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 3px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Deskripsi maksimal 2 baris */
+  #page-catalog #catalog-dynamic-items .desc-clamp,
+  #page-catalog #catalog-dynamic-items .p-5 p,
+  #page-catalog #catalog-dynamic-items .p-6 p {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    margin-bottom: 5px !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+  }
+
+  /* Harga + tombol mengikuti baris terakhir */
+  #page-catalog #catalog-dynamic-items .p-5 > div:last-child,
+  #page-catalog #catalog-dynamic-items .p-6 > div:last-child {
+    margin-top: 4px !important;
+    padding-top: 6px !important;
+    min-height: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  #page-catalog #catalog-dynamic-items .p-5 button,
+  #page-catalog #catalog-dynamic-items .p-6 button {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    flex: 0 0 30px !important;
+  }
+
+  #page-catalog #catalog-dynamic-items .p-5 button .material-symbols-outlined,
+  #page-catalog #catalog-dynamic-items .p-6 button .material-symbols-outlined {
+    font-size: 16px !important;
+  }
+
+  #page-catalog #catalog-dynamic-items .p-5 span,
+  #page-catalog #catalog-dynamic-items .p-6 span {
+    font-size: 10px !important;
+  }
+
+  /* Kartu info tetap full-width */
+  #page-catalog #catalog-grid > .catalog-item:last-child {
+    grid-column: 1 / -1 !important;
+    aspect-ratio: auto !important;
+  }
+
+  #page-catalog #catalog-dynamic-items > p {
+    grid-column: 1 / -1 !important;
+  }
+}
+</style>
+
+
+
+<style id="bumdes-page-refinement">
+  #page-about section:not(:first-child) > .text-center h2,
+  #page-about section:not(:first-child) > .text-center > h2 {
+    text-wrap: balance;
+  }
+
+  #page-about .bumdes-accordion button:hover {
+    background: rgba(1, 45, 29, 0.035);
+  }
+
+  #page-about .bumdes-accordion.is-open {
+    border-color: rgba(128, 84, 59, 0.24);
+    box-shadow: 0 16px 40px rgba(1, 45, 29, 0.06);
+  }
+
+  #page-about .bumdes-accordion.is-open .bumdes-chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (max-width: 767px) {
+    #page-about section {
+      margin-bottom: 2.75rem;
+    }
+
+    #page-about section > .text-center h2 {
+      font-size: 1.5rem;
+      line-height: 1.15;
+    }
+  }
+</style>
+
 </head>
 <body class="bg-background text-on-background antialiased selection:bg-secondary-container selection:text-on-secondary-container relative min-h-screen pb-24 md:pb-0">
 
@@ -281,7 +436,7 @@
           <p class="col-span-12 text-center text-on-surface-variant py-10">Memuat produk...</p>
         </div>
 
-        <div class="catalog-item glass-card rounded-2xl md:rounded-3xl md:col-span-6 overflow-hidden bg-primary/5 dark:bg-primary/10 flex flex-col justify-center items-center text-center p-6 md:p-8 border border-primary/20 relative reveal delay-200">
+        <div class="catalog-item glass-card rounded-2xl md:rounded-3xl md:col-span-12 overflow-hidden bg-primary/5 dark:bg-primary/10 flex flex-col justify-center items-center text-center p-6 md:p-8 border border-primary/20 relative reveal delay-200">
           <div class="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-secondary-fixed/30 dark:bg-secondary-fixed/10 rounded-bl-full filter blur-xl animate-blob"></div>
           <span class="material-symbols-outlined text-3xl md:text-4xl text-secondary dark:text-secondary-fixed mb-3 md:mb-4">eco</span>
           <h3 class="text-lg md:text-xl font-bold text-primary mb-2">Sourcing Berkelanjutan</h3>
@@ -334,7 +489,7 @@
 
           <div class="glass-panel p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm bg-white/30 dark:bg-black/30">
             <h3 class="text-lg md:text-xl font-bold text-primary mb-2 md:mb-3">Tentang Produk Ini</h3>
-            <p id="product-desc" class="text-sm md:text-base text-on-surface-variant mb-5 md:mb-6 text-balance">
+            <p id="product-desc" class="text-sm md:text-base text-on-surface-variant mb-4 md:mb-5 text-balance">
               Ditanam di ketinggian ideal lereng gunung Desa Getas, kopi Robusta kami menawarkan profil rasa yang kuat dengan tingkat keasaman rendah. Diproses secara tradisional oleh petani lokal.
             </p>
             <div class="grid grid-cols-2 gap-4 md:gap-6 pt-4 md:pt-5 border-t border-outline/10">
@@ -363,189 +518,815 @@
   </section>
 
   <section id="page-village" class="page">
-    <main class="pt-24 pb-16 relative z-10">
-      <header class="relative min-h-[40vh] md:min-h-[61.8vh] flex flex-col justify-end p-5 md:px-margin-desktop overflow-hidden rounded-3xl md:rounded-[2.5rem] mx-4 md:mx-10 reveal shadow-xl">
-        <div class="absolute inset-0 -z-10 skeleton-bg image-wrapper">
-          <img class="lazy-image w-full h-full object-cover" data-src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600" alt="Village Mountains" loading="lazy"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-        </div>
-        <div class="glass-panel border-none p-6 md:p-8 rounded-2xl md:rounded-3xl max-w-2xl mb-4 md:mb-8 bg-white/10 dark:bg-black/40 backdrop-blur-md">
-          <span class="inline-block px-3 md:px-4 py-1 md:py-1.5 mb-3 md:mb-4 rounded-full bg-secondary/30 text-white font-semibold text-[10px] md:text-xs uppercase tracking-wider backdrop-blur-md">Cerita Desa Getas</span>
-          <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-2 md:mb-4 leading-tight">Jantung Warisan Organik</h1>
-          <p class="text-sm md:text-lg text-white/90 text-balance">Desa Getas, Kecamatan Singorojo, Kabupaten Kendal — tempat tradisi turun-temurun bertemu semangat kewirausahaan modern.</p>
-        </div>
-      </header>
+    <main class="pt-24 md:pt-32 pb-16 relative z-10">
 
-      <div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12 md:py-24 space-y-16 md:space-y-24">
-        <section class="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
-          <div class="w-full md:w-[61.8%] relative aspect-[4/3] md:aspect-golden rounded-3xl md:rounded-[2.5rem] overflow-hidden skeleton-bg image-wrapper shadow-2xl reveal">
-            <img class="lazy-image w-full h-full object-cover" data-src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1200" alt="Nature" loading="lazy"/>
+      <!-- HERO DESA KAMI -->
+      <div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+        <section class="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] reveal">
+          <div class="absolute inset-0 z-0 skeleton-bg image-wrapper">
+            <img
+              class="lazy-image absolute inset-0 w-full h-full object-cover"
+              data-src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600"
+              alt="Pemandangan Desa Getas"
+              loading="lazy"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10"></div>
           </div>
-          <div class="w-full md:w-[38.2%] glass-panel p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] reveal delay-100 bg-white/50 dark:bg-black/30">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4 md:mb-6">
-              <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">landscape</span>
-            </div>
-            <h2 class="text-2xl md:text-3xl font-bold text-primary mb-4 md:mb-6">Profil & Letak Geografis</h2>
-            <p class="text-on-surface-variant text-sm md:text-lg mb-6">
-              Desa Getas berada di Kecamatan Singorojo, Kabupaten Kendal, Jawa Tengah, dengan luas wilayah sekitar 1.790 hektar — tercatat sebagai desa terluas di kecamatan tersebut. Berada di ketinggian lereng pegunungan dengan tanah vulkanik yang subur, desa ini menjadi lokasi ideal untuk perkebunan kopi dan pertanian nira aren.
+
+          <div class="relative z-10 px-5 md:px-10 py-12 md:py-20 text-center">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary-container/20 border border-white/15 text-white font-bold text-[10px] md:text-xs uppercase tracking-[0.14em] mb-4">
+              Desa Kami
+            </span>
+            <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight mb-3">
+              Getas, <span class="text-secondary-container">Tumbuh Bersama.</span>
+            </h1>
+            <p class="text-sm md:text-lg text-white/90 leading-relaxed max-w-2xl mx-auto">
+              Desa pegunungan dengan potensi alam, usaha warga, dan ruang tumbuh yang terus dikembangkan bersama.
             </p>
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-primary/10">
-              <div class="flex flex-col">
-                <span class="text-xl md:text-2xl font-extrabold text-primary">10</span>
-                <span class="text-[10px] md:text-xs font-semibold text-outline uppercase tracking-wider">Dusun</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-xl md:text-2xl font-extrabold text-primary">10 RW / 43 RT</span>
-                <span class="text-[10px] md:text-xs font-semibold text-outline uppercase tracking-wider">Pembagian Wilayah</span>
-              </div>
-            </div>
           </div>
         </section>
+      </div>
 
+      <div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mt-10 md:mt-16 space-y-10 md:space-y-20">
+
+        <!-- PROFIL GEOGRAFIS -->
         <section class="reveal">
-          <div class="glass-card rounded-3xl md:rounded-[2.5rem] p-6 md:p-12">
-            <h2 class="text-xl md:text-3xl font-bold text-primary mb-4 md:mb-6 text-center">10 Dusun Desa Getas</h2>
-            <div class="flex flex-wrap justify-center gap-2 md:gap-3">
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Seklotok</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Mambang</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Jolinggo</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Genting</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Metep</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Bleder</span>
-              <span class="bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary-fixed font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full border border-secondary/20">Getas (Induk)</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Truko</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Sanggar</span>
-              <span class="bg-primary/10 dark:bg-primary/20 text-primary font-semibold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full">Banjaran</span>
+          <div class="text-center mb-5 md:mb-8">
+            <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+              Kenali Getas
+            </span>
+            <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+              Profil & Letak Geografis
+            </h2>
+            <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto mt-2">
+              Potensi alam dan karakter wilayah yang menjadi bagian dari kehidupan masyarakat Getas.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-stretch">
+            <div class="md:col-span-7 relative aspect-[4/3] md:aspect-golden rounded-3xl md:rounded-[2.5rem] overflow-hidden skeleton-bg image-wrapper shadow-lg reveal">
+              <img
+                class="lazy-image w-full h-full object-cover"
+                data-src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1200"
+                alt="Lanskap alam Desa Getas"
+                loading="lazy"
+              >
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
             </div>
-            <p class="text-on-surface-variant text-sm md:text-base text-center mt-5 md:mt-6 max-w-3xl mx-auto text-balance">Dusun Getas berperan sebagai dusun induk yang menjadi pusat pemerintahan dan asal nama desa, dikelilingi oleh sembilan dusun lain yang masing-masing memiliki sejarah dan cerita rakyatnya sendiri.</p>
+
+            <div class="md:col-span-5 glass-card rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 bg-primary/[0.03] dark:bg-primary/10 reveal delay-100">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                <span class="material-symbols-outlined">landscape</span>
+              </div>
+              <h3 class="text-lg md:text-2xl font-bold text-primary mb-3">
+                Desa di Lereng Pegunungan
+              </h3>
+              <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">
+                Desa Getas berada di Kecamatan Singorojo, Kabupaten Kendal, dengan luas sekitar 1.790 hektar. Wilayahnya berada di lereng pegunungan dengan tanah vulkanik yang mendukung perkebunan kopi dan pertanian nira aren.
+              </p>
+
+              <div class="grid grid-cols-2 gap-3 md:gap-4 mt-5 pt-5 border-t border-primary/10">
+                <div class="rounded-2xl bg-white/60 dark:bg-white/5 p-3 md:p-4 border border-primary/10">
+                  <span class="text-xl md:text-2xl font-extrabold text-primary">10</span>
+                  <span class="block text-[10px] md:text-xs font-semibold text-outline uppercase tracking-wider mt-0.5">Dusun</span>
+                </div>
+                <div class="rounded-2xl bg-secondary-container/20 dark:bg-secondary-container/10 p-3 md:p-4 border border-secondary/20">
+                  <span class="text-xl md:text-2xl font-extrabold text-primary">10 RW / 43 RT</span>
+                  <span class="block text-[10px] md:text-xs font-semibold text-outline uppercase tracking-wider mt-0.5">Wilayah</span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section class="flex flex-col gap-8 md:gap-12">
-          <div class="text-center reveal">
-            <h2 class="text-2xl md:text-4xl font-bold text-primary mb-2 md:mb-4">Potensi & Kekayaan Alam</h2>
-            <p class="text-on-surface-variant max-w-2xl mx-auto text-sm md:text-lg text-balance">Lebih dari sekadar penghasil kopi, Desa Getas dianugerahi potensi alam dan budaya yang terus dikembangkan oleh warga bersama BUMDes Mitra Mandiri.</p>
+        <!-- DUSUN -->
+        <section class="reveal">
+          <div class="text-center mb-5 md:mb-8">
+            <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+              Wilayah Desa
+            </span>
+            <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+              10 Dusun Desa Getas
+            </h2>
+            <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto mt-2">
+              Getas menjadi dusun induk, bersama sembilan dusun lain yang membentuk wilayah desa.
+            </p>
           </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
-            <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal">
-               <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-secondary dark:text-secondary-fixed text-2xl md:text-3xl">forest</span></div>
-               <h3 class="text-lg md:text-xl font-bold text-primary mb-2 md:mb-3">Kopi Liberika & Robusta</h3>
-               <p class="text-sm md:text-base text-on-surface-variant flex-grow">Hampir setiap keluarga di Getas memiliki kebun kopi. Kelompok tani lokal mengolah biji kopi liberika dan robusta menjadi kopi bubuk siap seduh khas desa.</p>
-            </div>
-            
-            <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal delay-100">
-               <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-tertiary-container/10 dark:bg-tertiary-container/30 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-tertiary-container dark:text-tertiary-fixed-dim text-2xl md:text-3xl">nutrition</span></div>
-               <h3 class="text-lg md:text-xl font-bold text-primary mb-2 md:mb-3">Nira Aren & Peternakan</h3>
-               <p class="text-sm md:text-base text-on-surface-variant flex-grow">Selain gula aren, BUMDes tengah merintis usaha susu kambing perah, sementara warga juga berternak ayam petelur sebagai sumber penghasilan tambahan.</p>
-            </div>
-            
-            <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal delay-200">
-               <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-primary text-2xl md:text-3xl">kayaking</span></div>
-               <h3 class="text-lg md:text-xl font-bold text-primary mb-2 md:mb-3">Ekowisata & Tubing</h3>
-               <p class="text-sm md:text-base text-on-surface-variant flex-grow">Aliran sungai pegunungan yang jernih menghadirkan potensi wisata tubing/rafting, dilengkapi udara sejuk dan pemandangan pedesaan yang asri.</p>
+
+          <div class="glass-card rounded-3xl md:rounded-[2.5rem] p-4 md:p-8">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 md:gap-3">
+              <span class="bg-secondary-container/45 text-on-secondary-fixed font-bold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-secondary/30 text-center shadow-sm">Getas (Induk)</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Banjaran</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Bleder</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Genting</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Jolinggo</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Mambang</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Metep</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Sanggar</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Seklotok</span>
+              <span class="bg-primary/5 text-primary font-semibold text-xs md:text-sm px-3 py-2.5 rounded-2xl border border-primary/10 text-center">Truko</span>
             </div>
           </div>
         </section>
+
+        <!-- POTENSI -->
+        <section class="reveal">
+          <div class="text-center mb-5 md:mb-8">
+            <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+              Potensi Getas
+            </span>
+            <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+              Alam, Usaha & Wisata
+            </h2>
+            <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto mt-2">
+              Potensi yang menjadi bagian dari ekosistem ekonomi desa dan terus dikembangkan bersama masyarakat.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="glass-card rounded-3xl p-5 md:p-7 border-t-4 border-secondary flex flex-col reveal">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary mb-4">
+                <span class="material-symbols-outlined">forest</span>
+              </div>
+              <h3 class="text-lg md:text-xl font-bold text-primary mb-2">Kopi Liberika & Robusta</h3>
+              <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">
+                Kebun kopi menjadi bagian dari aktivitas warga, dengan hasil yang diolah menjadi kopi khas Desa Getas.
+              </p>
+            </div>
+
+            <div class="glass-card rounded-3xl p-5 md:p-7 border-t-4 border-tertiary-fixed-dim bg-tertiary-fixed-dim/5 dark:bg-tertiary-fixed-dim/10 flex flex-col reveal delay-100">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-tertiary-container/10 flex items-center justify-center text-tertiary-container mb-4">
+                <span class="material-symbols-outlined">nutrition</span>
+              </div>
+              <h3 class="text-lg md:text-xl font-bold text-primary mb-2">Nira Aren & Peternakan</h3>
+              <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">
+                Gula aren, budidaya kambing perah, dan peternakan menjadi bagian dari pengembangan usaha desa.
+              </p>
+            </div>
+
+            <div class="glass-card rounded-3xl p-5 md:p-7 border-t-4 border-primary bg-primary/[0.03] dark:bg-primary/10 flex flex-col reveal delay-200">
+              <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                <span class="material-symbols-outlined">kayaking</span>
+              </div>
+              <h3 class="text-lg md:text-xl font-bold text-primary mb-2">Ekowisata & Tubing</h3>
+              <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">
+                Sungai pegunungan, udara sejuk, dan lanskap desa membuka peluang wisata tubing dan rekreasi alam.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- BUMDES CONNECTION -->
+        <section class="reveal">
+          <div class="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-primary p-6 md:p-10 text-center text-white shadow-lg">
+            <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-secondary-container/15 blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 max-w-3xl mx-auto">
+              <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-secondary-container font-bold text-[10px] md:text-xs uppercase tracking-[0.14em] mb-4">
+                Ekosistem Desa
+              </span>
+              <h2 class="text-2xl md:text-4xl font-extrabold leading-tight mb-3">
+                Potensi Lokal, Peluang Bersama.
+              </h2>
+              <p class="text-sm md:text-lg text-white/80 leading-relaxed">
+                Potensi Getas terus diarahkan menjadi peluang ekonomi melalui kolaborasi masyarakat dan BUMDes, termasuk pengembangan usaha lokal dan pemasaran digital melalui GetasMart.
+              </p>
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
   </section>
 
   <section id="page-about" class="page">
     <main class="pt-24 md:pt-32 pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10">
-      <section class="relative min-h-[40vh] md:min-h-[50vh] flex items-center justify-center overflow-hidden rounded-3xl md:rounded-[3rem] mb-12 md:mb-16 reveal shadow-lg">
+
+      <!-- HERO BUMDes -->
+      <section class="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] mb-10 md:mb-20 reveal">
         <div class="absolute inset-0 z-0 skeleton-bg image-wrapper">
-          <!-- Cari elemen img BUMDes Background dan ubah linknya -->
-<img class="lazy-image absolute inset-0 w-full h-full object-cover" data-src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600" alt="BUMDes Background" loading="lazy">
-          <div class="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-md"></div>
+          <img
+            class="lazy-image absolute inset-0 w-full h-full object-cover"
+            data-src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600"
+            alt="BUMDes Mitra Mandiri Desa Getas"
+            loading="lazy"
+          >
+      
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/5"></div>
         </div>
-        <div class="relative z-10 text-center max-w-4xl mx-auto glass-panel p-6 md:p-16 rounded-2xl md:rounded-[2.5rem] shadow-xl m-4 md:m-6 bg-white/60 dark:bg-black/60">
-          <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold text-primary mb-3 md:mb-6 tracking-tight">Pilar Ekonomi Desa</h1>
-          <p class="text-sm md:text-xl text-on-surface-variant font-medium text-balance">
-            BUMDes Mitra Mandiri berdedikasi untuk mengangkat potensi lokal berkualitas tinggi dari Desa Getas ke kancah global.
+      
+        <div class="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-14">
+          <div class="max-w-3xl">
+      
+            <!-- Identity -->
+            <div class="flex items-center gap-2.5 mb-3 md:mb-4">
+              <img
+                src="https://res.cloudinary.com/vvdmbxoi/image/upload/v1786781845/WhatsApp_Image_2026-08-15_at_14.54.14.jpg"
+                alt="Logo BUMDes Mitra Mandiri"
+                class="w-9 h-9 md:w-14 md:h-14 object-contain rounded-lg md:rounded-xl bg-white p-1 shadow-md"
+              >
+      
+              <div>
+                <span class="text-white text-[10px] md:text-xs font-semibold uppercase tracking-wider">
+                  BUM Desa Mitra Mandiri
+                </span>
+      
+                <p class="text-white/70 text-[11px] md:text-sm mt-0.5">
+                  Desa Getas · Singorojo · Kendal
+                </p>
+              </div>
+            </div>
+      
+            <!-- Heading -->
+            <h1 class="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-3 md:mb-4">
+              Potensi Desa,
+              <span class="text-secondary-container">Peluang Bersama.</span>
+            </h1>
+      
+            <!-- Description -->
+            <p class="text-xs md:text-lg text-white/85 leading-relaxed max-w-xl">
+              Mengembangkan potensi dan usaha desa untuk menciptakan peluang ekonomi bagi masyarakat.
+            </p>
+      
+          </div>
+        </div>
+      </section>
+
+      <!-- STORY / POSITIONING -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
+      
+          <!-- Main -->
+          <div class="md:col-span-7 glass-card rounded-3xl md:rounded-[2.5rem] p-5 md:p-10">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/8 text-primary font-bold text-[10px] md:text-xs uppercase tracking-[0.14em] mb-4">
+              <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+              Peran BUMDes
+            </span>
+      
+            <h2 class="text-2xl md:text-4xl font-bold text-primary leading-tight mb-3">
+              Menghubungkan Potensi Desa
+            </h2>
+      
+            <p class="text-sm md:text-lg text-on-surface-variant leading-relaxed">
+              BUMDes mengelola potensi alam, keterampilan, dan usaha warga untuk membuka akses pasar serta peluang ekonomi yang lebih luas.
+            </p>
+          </div>
+      
+          <!-- Points -->
+          <div class="md:col-span-5 grid grid-cols-1 gap-4">
+      
+            <div class="glass-card rounded-2xl md:rounded-3xl p-5 md:p-7 bg-primary/[0.04] dark:bg-primary/10">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <span class="material-symbols-outlined">hub</span>
+                </div>
+      
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-outline">Ekosistem</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Satukan Potensi</h3>
+                </div>
+              </div>
+      
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Menghubungkan warga, produk lokal, layanan, dan peluang usaha.
+              </p>
+            </div>
+      
+            <div class="glass-card rounded-2xl md:rounded-3xl p-5 md:p-7">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                  <span class="material-symbols-outlined">trending_up</span>
+                </div>
+      
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-outline">Pertumbuhan</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Dorong Ekonomi</h3>
+                </div>
+              </div>
+      
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Membuka akses dan peluang agar usaha masyarakat terus berkembang.
+              </p>
+            </div>
+      
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFIL -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="mb-5 md:mb-8 text-center">
+          <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+            Tentang Mitra Mandiri
+          </span>
+        
+          <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+            Profil BUMDes
+          </h2>
+        
+          <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mt-2 mx-auto">
+            Identitas dan legalitas BUMDes Mitra Mandiri Desa Getas.
           </p>
         </div>
-      </section>
-
-      <section class="py-6 md:py-10 reveal">
-        <div class="text-center mb-8 md:mb-12">
-          <h2 class="text-2xl md:text-4xl font-bold text-primary mb-2 md:mb-4">Unit Usaha BUMDes Mitra Mandiri</h2>
-          <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto text-balance">Mengelola beberapa lini usaha berbasis potensi lokal dan kebutuhan masyarakat desa.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8 mb-4">
-          <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-primary text-2xl md:text-3xl">wifi</span></div>
-            <h4 class="text-base md:text-lg font-bold text-primary mb-2">Layanan Internet Desa</h4>
-            <p class="text-sm md:text-base text-on-surface-variant flex-grow">Menyediakan akses jaringan internet bagi warga untuk mendukung belajar, usaha, dan layanan administrasi desa berbasis digital.</p>
-          </div>
-          <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal delay-100">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-secondary dark:text-secondary-fixed text-2xl md:text-3xl">tour</span></div>
-            <h4 class="text-base md:text-lg font-bold text-primary mb-2">Pengembangan Wisata Desa</h4>
-            <p class="text-sm md:text-base text-on-surface-variant flex-grow">Mengembangkan potensi ekowisata dan budaya lokal Getas sekaligus membuka peluang usaha serta lapangan kerja baru bagi warga.</p>
-          </div>
-          <div class="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col h-full reveal delay-200">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-tertiary-container/10 dark:bg-tertiary-container/30 flex items-center justify-center mb-4 md:mb-6"><span class="material-symbols-outlined text-tertiary-container dark:text-tertiary-fixed-dim text-2xl md:text-3xl">agriculture</span></div>
-            <h4 class="text-base md:text-lg font-bold text-primary mb-2">Susu Kambing Perah</h4>
-            <p class="text-sm md:text-base text-on-surface-variant flex-grow">Unit usaha peternakan kambing perah yang baru dirintis sebagai diversifikasi ekonomi dan dukungan ketahanan pangan warga.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="py-10 md:py-20 reveal">
-        <div class="text-center mb-8 md:mb-12">
-          <h2 class="text-2xl md:text-4xl font-bold text-primary mb-2 md:mb-4">Visi & Misi</h2>
-          <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto text-balance">Arah langkah kami untuk kemajuan dan kesejahteraan bersama.</p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 auto-rows-fr">
-          <div class="glass-card p-6 md:p-12 rounded-3xl md:rounded-[2.5rem] md:col-span-2 flex flex-col justify-center reveal">
-            <div class="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-              <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-xl md:text-2xl">visibility</span></div>
-              <h3 class="text-xl md:text-2xl font-bold text-primary">Visi Kami</h3>
-            </div>
-            <p class="text-base md:text-xl text-on-surface-variant leading-relaxed font-medium">"Menjadi BUMDes percontohan nasional yang inovatif, mandiri, dan berwawasan global dalam mengelola potensi desa untuk kesejahteraan ekonomi warga Getas secara berkelanjutan."</p>
-          </div>
-          
-          <div class="glass-card p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] flex flex-col justify-center reveal delay-100">
-            <span class="material-symbols-outlined text-3xl md:text-4xl text-secondary dark:text-secondary-fixed mb-3 md:mb-4 block">handshake</span>
-            <h4 class="text-base md:text-lg font-bold text-primary mb-1 md:mb-2">Pemberdayaan</h4>
-            <p class="text-sm md:text-base text-on-surface-variant">Membangun ekosistem kolaboratif antar pelaku UMKM desa.</p>
-          </div>
-          
-          <div class="glass-card p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] flex flex-col justify-center reveal">
-            <span class="material-symbols-outlined text-3xl md:text-4xl text-tertiary-fixed-dim mb-3 md:mb-4 block">eco</span>
-            <h4 class="text-base md:text-lg font-bold text-primary mb-1 md:mb-2">Keberlanjutan</h4>
-            <p class="text-sm md:text-base text-on-surface-variant">Mengembangkan produk berbasis kearifan lokal yang ramah lingkungan.</p>
-          </div>
-          
-          <div class="glass-card p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] md:col-span-2 flex flex-col justify-center reveal delay-100">
-            <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
-              <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 dark:bg-primary/20 flex-shrink-0 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl md:text-3xl">trending_up</span></div>
+      
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+      
+          <!-- Identitas -->
+          <div class="md:col-span-7 glass-card rounded-3xl md:rounded-[2.5rem] p-5 md:p-8">
+      
+            <div class="flex items-center gap-3 mb-4 md:mb-5">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <span class="material-symbols-outlined">business</span>
+              </div>
+      
               <div>
-                <h4 class="text-lg md:text-xl font-bold text-primary mb-1 md:mb-2">Digitalisasi & Ekspansi</h4>
-                <p class="text-sm md:text-base text-on-surface-variant">Mengoptimalkan teknologi informasi untuk memperluas jangkauan pasar lokal ke nasional dan meningkatkan efisiensi operasional BUMDes.</p>
+                <h3 class="text-base md:text-xl font-bold text-primary">
+                  Identitas BUM Desa
+                </h3>
+                <p class="text-xs text-on-surface-variant">
+                  Mitra Mandiri · Desa Getas
+                </p>
+              </div>
+            </div>
+      
+            <div class="text-sm md:text-base">
+      
+              <div class="grid grid-cols-[90px_1fr] md:grid-cols-[140px_1fr] gap-3 py-2.5 border-b border-primary/10">
+                <span class="font-semibold text-outline">Nama</span>
+                <span class="font-bold text-primary">MITRA MANDIRI</span>
+              </div>
+      
+              <div class="grid grid-cols-[90px_1fr] md:grid-cols-[140px_1fr] gap-3 py-2.5 border-b border-primary/10">
+                <span class="font-semibold text-outline">Alamat</span>
+                <span class="text-on-surface-variant">
+                  Komplek Kantor Desa Getas, Jl. Raya Getas–Bleder
+                </span>
+              </div>
+      
+              <div class="grid grid-cols-[90px_1fr] md:grid-cols-[140px_1fr] gap-3 py-2.5 border-b border-primary/10">
+                <span class="font-semibold text-outline">Dibentuk</span>
+                <span class="text-on-surface-variant">08 Februari 2017</span>
+              </div>
+      
+              <div class="grid grid-cols-[90px_1fr] md:grid-cols-[140px_1fr] gap-3 pt-2.5">
+                <span class="font-semibold text-outline">Legalitas</span>
+                <span class="text-on-surface-variant">Terdaftar 28 Mei 2025</span>
+              </div>
+      
+            </div>
+          </div>
+      
+          <!-- Legalitas -->
+          <div class="md:col-span-5 glass-card rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 bg-primary/[0.04] dark:bg-primary/10">
+      
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                <span class="material-symbols-outlined">verified</span>
+              </div>
+      
+              <div>
+                <h3 class="text-base md:text-xl font-bold text-primary">
+                  Registrasi Resmi
+                </h3>
+                <p class="text-xs text-on-surface-variant">
+                  Legalitas BUM Desa
+                </p>
+              </div>
+            </div>
+      
+            <p class="text-[10px] uppercase tracking-[0.14em] font-bold text-outline mb-1.5">
+              Nomor Registrasi
+            </p>
+      
+            <p class="text-lg md:text-2xl font-extrabold text-primary leading-snug break-words">
+              AHU-04117.AH.01.33.TAHUN 2025
+            </p>
+      
+          </div>
+      
+        </div>
+      </section>
+
+      <!-- UNIT USAHA -->
+      <section class="mb-12 md:mb-20 reveal">
+        <div class="text-center max-w-3xl mx-auto mb-6 md:mb-8">
+          <span class="inline-flex px-3 py-1 rounded-full bg-secondary/10 text-secondary text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold">Ragam Layanan & Usaha</span>
+          <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1.5 mb-2">Menghidupkan Ekonomi dari Berbagai Sisi</h2>
+          <p class="text-sm md:text-base text-on-surface-variant max-w-2xl mx-auto mt-2">Layanan usaha yang mendukung kebutuhan warga dan pertumbuhan ekonomi desa.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          <div class="glass-card rounded-3xl p-5 md:p-7 reveal border-l-4 border-primary">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary"><span class="material-symbols-outlined">payments</span></div>
+              <div><h3 class="text-base md:text-lg font-bold text-primary mb-1.5">Jasa Pembayaran (PPOB)</h3><p class="text-sm text-on-surface-variant leading-relaxed mb-3">Memudahkan kebutuhan transaksi dan pembayaran masyarakat melalui layanan yang lebih dekat dan praktis.</p><p class="text-xs text-outline">Penanggung jawab · <strong class="text-primary">Muchoirin</strong></p></div>
+            </div>
+          </div>
+          <div class="glass-card rounded-3xl p-5 md:p-7 reveal delay-100 border-l-4 border-secondary bg-secondary/[0.03]">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center flex-shrink-0 text-secondary"><span class="material-symbols-outlined">kayaking</span></div>
+              <div><h3 class="text-base md:text-lg font-bold text-primary mb-1.5">Desa Wisata</h3><p class="text-sm text-on-surface-variant leading-relaxed mb-3">Mengembangkan potensi wisata alam dan pengalaman lokal sebagai ruang pertumbuhan ekonomi berbasis desa.</p><p class="text-xs text-outline">Penanggung jawab · <strong class="text-primary">Arif Wahidin</strong></p></div>
+            </div>
+          </div>
+          <div class="glass-card rounded-3xl p-5 md:p-7 reveal delay-100 border-l-4 border-tertiary-container bg-tertiary-container/[0.03]">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-tertiary-container/10 flex items-center justify-center flex-shrink-0 text-tertiary-container"><span class="material-symbols-outlined">wifi</span></div>
+              <div><h3 class="text-base md:text-lg font-bold text-primary mb-1.5">Internet Desa</h3><p class="text-sm text-on-surface-variant leading-relaxed mb-3">Mendukung akses konektivitas masyarakat agar aktivitas sehari-hari, pelayanan, dan peluang ekonomi dapat bergerak lebih lancar.</p><p class="text-xs text-outline">Penanggung jawab · <strong class="text-primary">Tatank Febrianto</strong></p></div>
+            </div>
+          </div>
+          <div class="glass-card rounded-3xl p-5 md:p-7 reveal delay-200 border-l-4 border-primary bg-primary/[0.02]">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary"><span class="material-symbols-outlined">pets</span></div>
+              <div><h3 class="text-base md:text-lg font-bold text-primary mb-1.5">Ternak Kambing Perah</h3><p class="text-sm text-on-surface-variant leading-relaxed mb-3">Membuka potensi budidaya dan pengolahan hasil peternakan sebagai salah satu peluang usaha produktif di desa.</p><p class="text-xs text-outline">Penanggung jawab · <strong class="text-primary">Muchoirin</strong></p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GETASMART -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-primary p-5 md:p-10 lg:p-12 text-white shadow-xl">
+      
+          <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-secondary-container/15 blur-3xl pointer-events-none"></div>
+          <div class="absolute -left-20 -bottom-20 w-72 h-72 rounded-full bg-primary-fixed/10 blur-3xl pointer-events-none"></div>
+      
+          <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-center">
+      
+            <!-- Content -->
+            <div class="lg:col-span-7">
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-secondary-container font-bold text-[10px] md:text-xs uppercase tracking-[0.14em] mb-3">
+                Ekosistem Digital BUMDes
+              </span>
+      
+              <h2 class="text-3xl md:text-5xl font-extrabold leading-tight mb-3">
+                GetasMart.
+                <span class="text-secondary-container">Satu Desa, Satu Pasar.</span>
+              </h2>
+      
+              <p class="text-sm md:text-lg text-white/80 leading-relaxed max-w-xl">
+                Platform digital untuk memperkenalkan dan memasarkan produk UMKM Desa Getas ke pasar yang lebih luas.
+              </p>
+            </div>
+      
+            <!-- Role -->
+            <div class="lg:col-span-5">
+              <div class="glass-panel bg-white/10 border-white/15 rounded-3xl p-5 md:p-7">
+      
+                <div class="flex items-center gap-3 mb-4">
+                  <img
+                    src="icon.png"
+                    alt="Logo GetasMart"
+                    class="w-12 h-12 md:w-14 md:h-14 object-contain rounded-xl bg-white/90 p-2"
+                  >
+      
+                  <div>
+                    <p class="text-[10px] text-white/60 uppercase tracking-wider font-bold">
+                      Peran GetasMart
+                    </p>
+                    <h3 class="text-lg md:text-xl font-extrabold text-white">
+                      Produk Desa, Lebih Terjangkau
+                    </h3>
+                  </div>
+                </div>
+      
+                <div class="space-y-3">
+      
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-secondary-container">storefront</span>
+                    <p class="text-sm text-white/80">Etalase digital produk lokal.</p>
+                  </div>
+      
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-secondary-container">campaign</span>
+                    <p class="text-sm text-white/80">Media promosi UMKM Getas.</p>
+                  </div>
+      
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-secondary-container">public</span>
+                    <p class="text-sm text-white/80">Memperluas jangkauan pasar.</p>
+                  </div>
+      
+                </div>
+      
+                <button
+                  onclick="showPage('catalog')"
+                  class="mt-5 w-full liquid-btn py-3 rounded-2xl flex items-center justify-center gap-2 text-on-secondary-fixed font-bold text-sm shadow-lg"
+                >
+                  Jelajahi GetasMart
+                  <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </button>
+      
+              </div>
+            </div>
+      
+          </div>
+        </div>
+      </section>
+
+      <!-- STRUKTUR -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="text-center mb-5 md:mb-8">
+          <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+            Orang di Balik Gerakan
+          </span>
+          <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+            Susunan Pengurus
+          </h2>
+        </div>
+
+        <div class="max-w-3xl mx-auto space-y-3">
+
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-primary/10">
+            <button
+              type="button"
+              onclick="toggleBumdesAccordion(this)"
+              aria-expanded="false"
+              class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left"
+            >
+              <div class="flex items-center gap-3">
+                <span class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[19px]">account_balance</span>
+                </span>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-outline">Struktur Utama</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Pengurus BUM Desa</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-primary transition-transform">expand_more</span>
+            </button>
+
+            <div class="bumdes-accordion-content hidden border-t border-primary/10">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 md:p-4">
+                <div class="p-4 rounded-xl bg-primary/[0.05] border-l-4 border-primary">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Penasehat</span>
+                  <p class="font-bold text-primary mt-1">Budiyono</p>
+                </div>
+                <div class="p-4 rounded-xl bg-primary/[0.05] border-l-4 border-primary">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Pengawas</span>
+                  <p class="font-bold text-primary mt-1">Fachrudin</p>
+                </div>
+                <div class="p-4 rounded-xl bg-secondary/[0.06] border-l-4 border-secondary">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Direktur</span>
+                  <p class="font-bold text-primary mt-1">Muchoirin</p>
+                </div>
+                <div class="p-4 rounded-xl bg-primary/[0.05] border-l-4 border-primary">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Sekretaris</span>
+                  <p class="font-bold text-primary mt-1">Tatank Febrianto</p>
+                </div>
+                <div class="p-4 rounded-xl bg-primary/[0.05] border-l-4 border-primary">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Bendahara</span>
+                  <p class="font-bold text-primary mt-1">Kustianah</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-secondary/15 bg-secondary/[0.03]">
+            <button
+              type="button"
+              onclick="toggleBumdesAccordion(this)"
+              aria-expanded="false"
+              class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left"
+            >
+              <div class="flex items-center gap-3">
+                <span class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[19px]">storefront</span>
+                </span>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-outline">Unit Usaha</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Penanggung Jawab Unit</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-secondary transition-transform">expand_more</span>
+            </button>
+
+            <div class="bumdes-accordion-content hidden border-t border-secondary/10">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 md:p-4">
+                <div class="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-primary/10">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Wisata Tubing</span>
+                  <p class="font-bold text-primary mt-1">Arif Wahidin</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-secondary/15">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">PPOB</span>
+                  <p class="font-bold text-primary mt-1">Muchoirin</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-primary/10">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Internet Desa</span>
+                  <p class="font-bold text-primary mt-1">Tatank Febrianto</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-tertiary-container/20">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-outline">Kambing Perah</span>
+                  <p class="font-bold text-primary mt-1">Muchoirin</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VISI MISI -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="text-center mb-5 md:mb-8">
+          <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">Arah Pengembangan</span>
+          <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">Visi & Misi</h2>
+          <p class="text-sm md:text-base text-on-surface-variant max-w-2xl mx-auto mt-2">Arah pengembangan Desa Getas bersama masyarakat dan potensi lokal.</p>
+        </div>
+
+        <div class="max-w-3xl mx-auto space-y-3 md:space-y-4">
+
+          <!-- VISI -->
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-primary/15 bg-primary/[0.03]">
+            <button type="button" onclick="toggleBumdesAccordion(this)" aria-expanded="false" class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined">visibility</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-secondary">Visi</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Mewujudkan desa yang tumbuh melalui potensi dan usaha masyarakat.</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-primary transition-transform shrink-0">expand_more</span>
+            </button>
+
+            <div class="bumdes-accordion-content hidden border-t border-primary/10">
+              <div class="p-4 md:p-6">
+                <p class="text-sm md:text-lg font-semibold text-primary leading-relaxed">
+                  “Mewujudkan Kesejahteraan Masyarakat Desa Getas Melalui Pengembangan Usaha Berbasis Ekonomi kreatif, Pelayanan Sosial, dan Meningkatkan Pemanfaatan Potensi Alam Sekitar”
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MISI 1 -->
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-secondary/15 bg-secondary/[0.03]">
+            <button type="button" onclick="toggleBumdesAccordion(this)" aria-expanded="false" class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined">flag</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-secondary">Misi 01</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Menguatkan perekonomian desa</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-secondary transition-transform shrink-0">expand_more</span>
+            </button>
+            <div class="bumdes-accordion-content hidden border-t border-secondary/10">
+              <div class="p-4 md:p-6">
+                <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">Mendorong kegiatan ekonomi yang memberi nilai tambah bagi desa dan masyarakat.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MISI 2 -->
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-primary/10 bg-primary/[0.025]">
+            <button type="button" onclick="toggleBumdesAccordion(this)" aria-expanded="false" class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined">trending_up</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-secondary">Misi 02</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Mengembangkan potensi ekonomi masyarakat</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-primary transition-transform shrink-0">expand_more</span>
+            </button>
+            <div class="bumdes-accordion-content hidden border-t border-primary/10">
+              <div class="p-4 md:p-6">
+                <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">Membuka ruang agar potensi lokal dapat dikelola menjadi usaha yang produktif.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MISI 3 -->
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-secondary/15 bg-secondary/[0.03]">
+            <button type="button" onclick="toggleBumdesAccordion(this)" aria-expanded="false" class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined">payments</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-secondary">Misi 03</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Meningkatkan pendapatan masyarakat & desa</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-secondary transition-transform shrink-0">expand_more</span>
+            </button>
+            <div class="bumdes-accordion-content hidden border-t border-secondary/10">
+              <div class="p-4 md:p-6">
+                <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">Mengupayakan pertumbuhan usaha yang berkontribusi pada pendapatan masyarakat dan Pendapatan Asli Desa.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MISI 4 -->
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-primary/10 bg-primary/[0.025]">
+            <button type="button" onclick="toggleBumdesAccordion(this)" aria-expanded="false" class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined">diversity_3</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-secondary">Misi 04</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Mendukung pengembangan usaha ekonomi pedesaan</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-primary transition-transform shrink-0">expand_more</span>
+            </button>
+            <div class="bumdes-accordion-content hidden border-t border-primary/10">
+              <div class="p-4 md:p-6">
+                <p class="text-sm md:text-base text-on-surface-variant leading-relaxed">Mengelola program dan dana bergulir untuk mendukung pengentasan kemiskinan serta pengembangan usaha ekonomi pedesaan.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- KEPEMILIKAN MODAL -->
+      <section class="mb-10 md:mb-20 reveal">
+        <div class="text-center mb-5 md:mb-8">
+          <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">
+            Data Pendukung
+          </span>
+          <h2 class="text-2xl md:text-4xl font-bold text-primary mt-1">
+            Kepemilikan Modal
+          </h2>
+          <p class="text-sm md:text-base text-on-surface-variant max-w-xl mx-auto mt-2">
+            Ringkasan penyertaan modal BUM Desa hingga 2025.
+          </p>
+        </div>
+
+        <div class="max-w-3xl mx-auto">
+          <div class="bumdes-accordion glass-card rounded-2xl md:rounded-3xl overflow-hidden border border-secondary/15 bg-secondary/[0.03]">
+            <button
+              type="button"
+              onclick="toggleBumdesAccordion(this)"
+              aria-expanded="false"
+              class="w-full flex items-center justify-between gap-4 p-4 md:p-5 text-left"
+            >
+              <div class="flex items-center gap-3">
+                <span class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[19px]">account_balance_wallet</span>
+                </span>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-outline">Ringkasan</p>
+                  <h3 class="text-base md:text-lg font-bold text-primary">Detail Permodalan</h3>
+                </div>
+              </div>
+              <span class="material-symbols-outlined bumdes-chevron text-secondary transition-transform">expand_more</span>
+            </button>
+
+            <div class="bumdes-accordion-content hidden border-t border-secondary/10">
+              <div class="p-3 md:p-4 space-y-2">
+                <div class="flex items-center justify-between gap-4 p-4 rounded-xl bg-primary/[0.05]">
+                  <div>
+                    <p class="text-sm font-bold text-primary">Penyertaan Modal Desa</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Permodalan utama</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-primary text-white text-sm font-extrabold">100%</span>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 p-4 rounded-xl bg-secondary/[0.06]">
+                  <div>
+                    <p class="text-sm font-bold text-primary">Penyertaan Modal Desa Masyarakat</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-fixed text-sm font-bold">—</span>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 p-4 rounded-xl bg-tertiary-container/[0.05]">
+                  <div>
+                    <p class="text-sm font-bold text-primary">Penambahan Pihak Ke-3</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary-container text-sm font-bold">—</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="py-10 md:py-20 reveal">
-        <div class="max-w-4xl mx-auto liquid-gradient p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center shadow-2xl relative overflow-hidden">
-          <div class="absolute inset-0 bg-white/20 dark:bg-black/20 backdrop-blur-sm"></div>
-          <div class="relative z-10">
-            <h2 class="text-2xl md:text-4xl font-extrabold text-on-secondary-fixed dark:text-secondary-fixed mb-4 md:mb-6">Mari Tumbuh Bersama Kami</h2>
-            <p class="text-sm md:text-lg text-on-secondary-fixed/80 dark:text-secondary-fixed/80 mb-8 md:mb-10 max-w-2xl mx-auto font-medium">Dukung kebangkitan ekonomi lokal dengan menikmati produk otentik Desa Getas, atau bergabunglah sebagai mitra strategis kami.</p>
-            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-              <button onclick="showPage('catalog')" class="bg-primary dark:bg-white text-white dark:text-primary px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform">Belanja Produk Lokal</button>
-              <button onclick="openWhatsApp('partnership')" class="bg-white/50 dark:bg-black/50 backdrop-blur text-primary dark:text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-sm md:text-lg hover:scale-105 transition-transform">Hubungi Kemitraan</button>
+      <!-- CLOSING CTA -->
+        <section class="reveal">
+          <div class="relative overflow-hidden max-w-5xl mx-auto rounded-3xl md:rounded-[2.5rem] bg-secondary-container/50 dark:bg-secondary/20 p-6 md:p-10 lg:p-12 text-center border border-secondary/20">
+            <span class="text-[10px] md:text-xs uppercase tracking-[0.16em] font-bold text-secondary">Dari Desa, Untuk Tumbuh Bersama</span>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-primary mt-2 mb-3">Kenali produknya. Dukung usahanya. Ceritakan desanya.</h2>
+            <p class="text-sm md:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed mb-6">Melalui GetasMart, potensi dan produk lokal Desa Getas hadir lebih dekat dengan Anda. Setiap pilihan adalah bagian dari ekosistem yang membantu usaha masyarakat terus bertumbuh.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+              <button onclick="showPage('catalog')" class="liquid-btn px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-sm md:text-base text-on-secondary-fixed inline-flex items-center justify-center gap-2 shadow-lg">Jelajahi Produk <span class="material-symbols-outlined text-base">arrow_forward</span></button>
+              <button onclick="openWhatsApp('general')" class="px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-sm md:text-base text-primary bg-white/70 dark:bg-black/20 border border-primary/10 inline-flex items-center justify-center gap-2">Hubungi GetasMart <span class="material-symbols-outlined text-base">forum</span></button>
             </div>
           </div>
-        </div>
-      </section>
+          <div class="max-w-5xl mx-auto mt-6 text-center">
+            <p class="text-[10px] md:text-xs text-outline leading-relaxed">Profil BUMDes ditetapkan di Getas, 11 Maret 2026 atas nama pengurus operasional, Muchoirin, Direktur BUMDES Mitra Mandiri.</p>
+            <p class="text-[10px] md:text-xs text-outline mt-2">GetasMart · bagian dari ekosistem pemasaran digital Desa Getas · Karya KKN-T Universitas Diponegoro x Bank BRI · Tim 136 · 2026</p>
+          </div>
+        </section>
+
     </main>
   </section>
-
   <section id="page-faq" class="page">
     <main class="pt-24 md:pt-32 pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto min-h-screen relative z-10">
       <div class="mb-10 md:mb-12 text-center reveal">
@@ -627,8 +1408,8 @@
 
 </div> 
 
-<footer class="w-full mt-auto bg-primary dark:bg-black text-primary-fixed border-t border-white/10 relative z-10 pb-24 md:pb-0 transition-colors duration-500">
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 px-margin-mobile md:px-margin-desktop py-12 md:py-16 max-w-container-max mx-auto">
+<footer class="w-full mt-auto bg-primary dark:bg-black text-primary-fixed border-t border-white/10 relative z-10 pb-16 md:pb-0 transition-colors duration-500">
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 px-margin-mobile md:px-margin-desktop py-8 md:py-10 max-w-container-max mx-auto">
     <div class="col-span-1 md:col-span-4">
       <h2 class="text-2xl font-extrabold text-white mb-3 md:mb-4">GetasMart<span class="text-secondary-container">.</span></h2>
       <p class="text-sm md:text-base text-primary-fixed-dim mb-5 md:mb-6 text-balance">Mengangkat potensi UMKM lokal berkualitas tinggi dari Desa Getas, Kendal ke pasar global. Organik, Otentik, Berkelanjutan.</p>
@@ -647,7 +1428,7 @@
         </div>
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-secondary-container">call</span>
-          <a href="https://wa.me/6285640485743?text=Halo%20GetasMart%2C%20saya%20ingin%20bertanya%20seputar%20produk%20UMKM." target="_blank" class="hover:text-white transition-colors min-h-[48px] flex items-center">+62 856-4048-5743 (WhatsApp)</a>
+          <a href="https://wa.me/6281227118511?text=Halo%20GetasMart%2C%20saya%20ingin%20bertanya%20seputar%20produk%20UMKM." target="_blank" class="hover:text-white transition-colors min-h-[48px] flex items-center">+62-812-2711-8511 (WhatsApp)</a>
         </div>
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-secondary-container">mail</span>
@@ -658,14 +1439,14 @@
     
     <div class="col-span-1 md:col-span-4 flex flex-col">
       <h4 class="text-white text-base md:text-lg font-bold mb-3 md:mb-4">Lokasi Kami</h4>
-      <div class="w-full aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden bg-white/5 border border-white/10 relative">
+      <div class="w-full h-40 md:h-48 rounded-xl md:rounded-2xl overflow-hidden bg-white/5 border border-white/10 relative">
         <iframe src="https://maps.google.com/maps?q=Getas,+Singorojo,+Kendal&t=&z=13&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </div>
   </div>
-  <div class="border-t border-white/10 mt-2 md:mt-4 py-5 md:py-6 text-center text-primary-fixed-dim text-xs md:text-sm font-medium">
+  <div class="border-t border-white/10 mt-2 md:mt-3 py-4 md:py-5 text-center text-primary-fixed-dim text-xs md:text-sm font-medium">
     © 2026 GetasMart — BUMDes Mitra Mandiri. All rights reserved.
-    <div class="mt-4 pt-4 border-t border-white/10 opacity-75">
+    <div class="mt-3 pt-3 border-t border-white/10 opacity-75">
       <p class="text-[10px] md:text-[12px]">
         <span class="font-bold text-white">Tim KKN-T 136 Universitas Diponegoro</span> 
         x 
@@ -691,6 +1472,34 @@
     <span class="material-symbols-outlined mb-1 text-[20px]">help</span> FAQ
   </a>
 </nav>
+
+
+
+<script>
+  function toggleBumdesAccordion(button) {
+    const item = button.closest('.bumdes-accordion');
+    if (!item) return;
+
+    const content = item.querySelector('.bumdes-accordion-content');
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+
+    const activePage = item.closest('.page') || document;
+    activePage.querySelectorAll('.bumdes-accordion').forEach((other) => {
+      if (other === item) return;
+      const otherButton = other.querySelector('button[aria-expanded]');
+      const otherContent = other.querySelector('.bumdes-accordion-content');
+      if (otherButton && otherContent) {
+        otherButton.setAttribute('aria-expanded', 'false');
+        otherContent.classList.add('hidden');
+        other.classList.remove('is-open');
+      }
+    });
+
+    button.setAttribute('aria-expanded', String(!expanded));
+    content.classList.toggle('hidden', expanded);
+    item.classList.toggle('is-open', !expanded);
+  }
+</script>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
