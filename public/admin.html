@@ -5,12 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Admin Panel - GetasMart</title>
 <meta name="robots" content="noindex, nofollow"/>
-<link rel="icon" type="image/png" href="icon.png">
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" type="image/png" href="icon.png"/>
+<!-- Tailwind CDN — form ini pakai banyak class Tailwind (bg-gray-50, rounded-2xl, dst),
+     harus dimuat supaya styling-nya kepakai. -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <style>
   body { font-family: 'Segoe UI', system-ui, sans-serif; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #01573544; border-radius: 4px; }
+  /* Panah default <details> diganti biar konsisten sama desain */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -80,115 +85,116 @@
         <h3 id="modal-title" class="font-bold text-gray-800">Tambah Produk</h3>
         <button id="modal-close-btn" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
       </div>
-      <form id="product-form" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form id="product-form" class="p-6 flex flex-col gap-4">
         <input type="hidden" id="f-id"/>
 
-        <div class="md:col-span-2">
+        <!-- ===== WAJIB DIISI ===== -->
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide -mb-1">Wajib diisi</p>
+
+        <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">Nama Produk *</label>
           <input id="f-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#012d1d]/30"/>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Kategori (filter) *</label>
-          <select id="f-category" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
-            <option value="kopi">Kopi</option>
-            <option value="gula">Gula Aren</option>
-            <option value="kriya">Kriya</option>
-          </select>
-          <p class="text-[11px] text-gray-400 mt-1">Harus salah satu dari 3 ini supaya filter di katalog berfungsi.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Kategori (filter) *</label>
+            <select id="f-category" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+              <option value="kopi">Kopi</option>
+              <option value="gula">Gula Aren</option>
+              <option value="kriya">Kriya</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Harga (Rp, tanpa titik) *</label>
+            <input id="f-price" type="number" min="0" required placeholder="45000" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+          </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Label Kategori (tampil di halaman detail)</label>
-          <input id="f-categoryLabel" placeholder="cth: Kopi Robusta" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Harga (angka, tanpa titik) *</label>
-          <input id="f-price" type="number" min="0" required placeholder="45000" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Satuan</label>
-          <input id="f-unit" placeholder="/ 250g" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Badge</label>
-          <input id="f-badge" placeholder="Best Seller" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Ukuran Card Katalog</label>
-          <select id="f-size" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-            <option value="normal">Normal</option>
-            <option value="large">Besar (highlight)</option>
-          </select>
-        </div>
-
-        <div class="md:col-span-2">
           <label class="block text-xs font-semibold text-gray-500 mb-1">Deskripsi *</label>
           <textarea id="f-desc" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea>
         </div>
 
-        <div class="md:col-span-2">
+        <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Utama *</label>
           <input id="f-imgMain" required placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 1</label>
-          <input id="f-img1" placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 2</label>
-          <input id="f-img2" placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 1 - Label</label>
-          <input id="f-spec1Label" placeholder="Roast Level" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 1 - Nilai</label>
-          <input id="f-spec1Value" placeholder="Medium-Dark" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 1 - Persen bar (cth 75%)</label>
-          <input id="f-spec1Pct" placeholder="75%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div></div>
+        <!-- ===== OPSIONAL — otomatis diisi kalau kosong ===== -->
+        <details class="border border-gray-200 rounded-lg mt-2">
+          <summary class="px-4 py-3 text-sm font-semibold text-gray-600 flex items-center justify-between">
+            Detail tambahan (opsional)
+            <span class="text-gray-400 text-xs font-normal">semua otomatis diisi kalau dikosongkan &darr;</span>
+          </summary>
+          <div class="p-4 pt-2 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 2 - Label</label>
-          <input id="f-spec2Label" placeholder="Body" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 2 - Nilai</label>
-          <input id="f-spec2Value" placeholder="Full" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Spesifikasi 2 - Persen bar (cth 100%)</label>
-          <input id="f-spec2Pct" placeholder="100%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
-        <div></div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Label Kategori</label>
+              <input id="f-categoryLabel" placeholder="kosongkan = otomatis ikut kategori" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Satuan</label>
+              <input id="f-unit" placeholder="kosongkan = / pcs" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
 
-        <div class="md:col-span-2">
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Pesan WhatsApp (nama produk yang dikirim saat order)</label>
-          <input id="f-waMessage" placeholder="Kopi Robusta Getas (250g)" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-          <p class="text-[11px] text-gray-400 mt-1">Kalau dikosongkan, otomatis pakai Nama Produk.</p>
-        </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Badge</label>
+              <input id="f-badge" placeholder="kosongkan = Produk Pilihan" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Ukuran Card Katalog</label>
+              <select id="f-size" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                <option value="normal">Normal</option>
+                <option value="large">Besar (highlight)</option>
+              </select>
+            </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Urutan Tampil (angka, kecil = duluan)</label>
-          <input id="f-order" type="number" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-        </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 1</label>
+              <input id="f-img1" placeholder="kosongkan = pakai gambar utama" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">URL Gambar Detail 2</label>
+              <input id="f-img2" placeholder="kosongkan = pakai gambar utama" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
 
-        <div class="flex items-center gap-2 mt-6">
-          <input id="f-active" type="checkbox" checked class="w-4 h-4"/>
-          <label for="f-active" class="text-sm text-gray-700">Aktif (tampil di katalog)</label>
-        </div>
+            <div class="md:col-span-2 border-t border-gray-100 pt-3">
+              <p class="text-xs font-semibold text-gray-500 mb-2">Spesifikasi 1 <span class="font-normal text-gray-400">(kosongkan = Kualitas / Premium / 80%)</span></p>
+              <div class="grid grid-cols-3 gap-2">
+                <input id="f-spec1Label" placeholder="Label" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec1Value" placeholder="Nilai" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec1Pct" placeholder="80%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              </div>
+            </div>
 
-        <div class="md:col-span-2 flex items-center gap-3 pt-4 border-t mt-2">
+            <div class="md:col-span-2">
+              <p class="text-xs font-semibold text-gray-500 mb-2">Spesifikasi 2 <span class="font-normal text-gray-400">(kosongkan = Keaslian / 100% Asli / 100%)</span></p>
+              <div class="grid grid-cols-3 gap-2">
+                <input id="f-spec2Label" placeholder="Label" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec2Value" placeholder="Nilai" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+                <input id="f-spec2Pct" placeholder="100%" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+              </div>
+            </div>
+
+            <div class="md:col-span-2 border-t border-gray-100 pt-3">
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Pesan WhatsApp (nama produk yang dikirim saat order)</label>
+              <input id="f-waMessage" placeholder="kosongkan = pakai Nama Produk" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Urutan Tampil (kecil = duluan)</label>
+              <input id="f-order" type="number" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
+            </div>
+            <div class="flex items-center gap-2 mt-6">
+              <input id="f-active" type="checkbox" checked class="w-4 h-4"/>
+              <label for="f-active" class="text-sm text-gray-700">Aktif (tampil di katalog)</label>
+            </div>
+
+          </div>
+        </details>
+
+        <div class="flex items-center gap-3 pt-4 border-t mt-2">
           <button type="submit" id="save-btn" class="bg-[#012d1d] text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 transition">Simpan Produk</button>
           <button type="button" id="modal-cancel-btn" class="text-gray-500 text-sm px-5 py-2.5 hover:bg-gray-100 rounded-lg transition">Batal</button>
           <span id="save-status" class="text-sm text-gray-400"></span>

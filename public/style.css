@@ -1,24 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; line-height: 1.618; transition: background-color 0.5s ease, color 0.5s ease; }
-  
-/* Liquid Glass UI Base */
+
+/* =========================================================================
+   Liquid Glass UI Base
+   (Optimized: blur radius trimmed slightly — 20px -> 16px reads almost
+   identical but is noticeably cheaper for the compositor — and transform
+   is promoted to its own layer up front instead of only during transition.)
+========================================================================= */
 .glass-panel, .glass-card {
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 20px 40px -10px rgba(1, 45, 29, 0.05);
   transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.4s ease;
+  transform: translateZ(0);
 }
 
+/* Optimized: box-shadow is no longer animated on hover. Animating
+   box-shadow forces a repaint every frame; instead we fade in a
+   pre-rendered shadow layer on a pseudo-element, which only ever
+   animates `opacity` (composited, effectively free). */
 .liquid-gradient, .liquid-btn {
+  position: relative;
   background: linear-gradient(135deg, #ffdea9, #fdc2a3);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border: 1px solid rgba(255,255,255,0.5);
+}
+
+.liquid-gradient::after, .liquid-btn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  box-shadow: 0 10px 25px -5px rgba(253, 194, 163, 0.6);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .liquid-gradient:hover, .liquid-btn:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 25px -5px rgba(253, 194, 163, 0.6);
+}
+
+.liquid-gradient:hover::after, .liquid-btn:hover::after {
+  opacity: 1;
 }
 
 /* Dark Mode Overrides */
@@ -36,9 +66,9 @@ html.dark .liquid-gradient, html.dark .liquid-btn {
   border-color: rgba(255,255,255,0.1);
   color: #ffdbca;
 }
-html.dark .skeleton-bg {
-  background: #2a2c2b;
-  background-image: linear-gradient(90deg, #2a2c2b 0px, #3a3c3b 150px, #2a2c2b 300px);
+html.dark .skeleton-bg { background: #2a2c2b; }
+html.dark .skeleton-bg::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
 }
 html.dark .bnav-item.active-item { background: rgba(101, 61, 38, 0.85); color: #ffdbca; }
 html.dark nav#main-nav { background: rgba(26, 28, 27, 0.8); border-bottom-color: rgba(255,255,255,0.1); }
@@ -51,30 +81,67 @@ html.dark .filter-btn.bg-primary { background-color: #c1ecd4; color: #012d1d; }
   will-change: transform;
 }
 
-/* Theme Transition Animation Overlay */
+/* =========================================================================
+   Theme Transition Animation Overlay
+   (Optimized: `contain: strict` isolates this layer's rendering from the
+   rest of the page so the browser doesn't re-check layout/paint outside
+   its bounds while the clip-path animates, and `will-change: clip-path`
+   promotes it to its own compositor layer up front instead of mid-animation.)
+========================================================================= */
 .theme-transition-overlay {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
   background: #121413; z-index: 999999;
   clip-path: circle(0% at 50% 50%);
   pointer-events: none;
   transition: clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+  will-change: clip-path;
+  contain: strict;
 }
 html.dark .theme-transition-overlay { background: #f8f9fa; }
 
-/* Skeleton & Lazy */
+/* =========================================================================
+   Skeleton & Lazy
+   (Optimized: the shimmer no longer animates `background-position`, which
+   forces a full repaint every frame. Instead a translucent highlight band
+   slides across via `transform: translateX()` on a pseudo-element, which
+   the compositor can animate without repainting the element underneath.)
+========================================================================= */
 .skeleton-bg {
+  position: relative;
+  overflow: hidden;
   background: #e5e7eb;
-  background-image: linear-gradient(90deg, #e5e7eb 0px, #f3f4f6 150px, #e5e7eb 300px);
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite linear;
 }
+.skeleton-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  transform: translateX(-100%);
+  animation: shimmer-slide 1.8s infinite linear;
+  will-change: transform;
+}
+@keyframes shimmer-slide {
+  100% { transform: translateX(100%); }
+}
+
+/* Optimized: will-change is only applied while an image is actually
+   pending/animating (`:not(.loaded)`), so once it finishes loading the
+   browser can drop the dedicated compositor layer instead of keeping one
+   around for every image on the page indefinitely. */
 .lazy-image { opacity: 0; transition: opacity 0.8s ease-in-out, transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
+.lazy-image:not(.loaded) { will-change: opacity, transform; }
 .lazy-image.loaded { opacity: 1; }
 
 /* Utilities */
 #splash-screen { transition: opacity 0.6s ease-out, visibility 0.6s ease-out; }
 #splash-screen.hidden-splash { opacity: 0; visibility: hidden; pointer-events: none; }
-.reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); will-change: opacity, transform; }
+
+/* Optimized: same will-change-only-while-animating approach as .lazy-image
+   above. Previously every .reveal element kept a compositor layer alive
+   permanently (even long after it had faded in), which adds up fast on a
+   page with many catalog cards. */
+.reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
+.reveal:not(.visible) { will-change: opacity, transform; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 .delay-100 { transition-delay: 100ms; }
 .delay-200 { transition-delay: 200ms; }

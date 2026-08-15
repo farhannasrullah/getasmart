@@ -1,5 +1,7 @@
 /* =========================================================================
    0.1 DARK/LIGHT MODE LOGIC
+   (Optimized: uses transitionend instead of chained setTimeout guesses,
+   and a re-entrancy guard so rapid clicks can't stack animations.)
 ========================================================================= */
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
@@ -38,41 +40,49 @@ function applyTheme(toDark) {
   }
 }
 
+let themeTransitionInProgress = false;
+
 themeToggleBtn.addEventListener('click', () => {
+  if (themeTransitionInProgress) return; // guard against rapid double-clicks stacking animations
+
   if (prefersReducedMotion) {
     applyTheme(!htmlEl.classList.contains('dark'));
     return;
   }
+
+  themeTransitionInProgress = true;
   overlay.style.transition = 'none';
   overlay.style.clipPath = 'circle(0% at 90% 90%)';
-  
-  setTimeout(() => {
+
+  requestAnimationFrame(() => {
     overlay.style.transition = 'clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1)';
     overlay.style.clipPath = 'circle(150% at 90% 90%)';
-    
-    setTimeout(() => {
-      if (htmlEl.classList.contains('dark')) {
-        htmlEl.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-        themeIcon.textContent = 'dark_mode';
-      } else {
-        htmlEl.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-        themeIcon.textContent = 'light_mode';
-      }
-      
-      setTimeout(() => {
-        overlay.style.transition = 'opacity 0.4s ease';
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-          overlay.style.clipPath = 'circle(0% at 90% 90%)';
-          overlay.style.opacity = '1';
-          overlay.style.transition = 'none';
-        }, 400);
-      }, 100);
+  });
 
-    }, 400); 
-  }, 50);
+  const onExpandEnd = (e) => {
+    if (e.propertyName !== 'clip-path') return;
+    overlay.removeEventListener('transitionend', onExpandEnd);
+
+    if (htmlEl.classList.contains('dark')) {
+      applyTheme(false);
+    } else {
+      applyTheme(true);
+    }
+
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+
+    const onFadeEnd = (e2) => {
+      if (e2.propertyName !== 'opacity') return;
+      overlay.removeEventListener('transitionend', onFadeEnd);
+      overlay.style.clipPath = 'circle(0% at 90% 90%)';
+      overlay.style.opacity = '1';
+      overlay.style.transition = 'none';
+      themeTransitionInProgress = false;
+    };
+    overlay.addEventListener('transitionend', onFadeEnd);
+  };
+  overlay.addEventListener('transitionend', onExpandEnd);
 });
 
 /* =========================================================================
@@ -123,10 +133,13 @@ function filterCatalog(category, btnElement) {
 ========================================================================= */
 let PRODUCTS = {};
 
+/* Optimized: string-based escaping instead of creating/discarding a DOM
+   node for every field of every product on every render. */
+const ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const ESCAPE_RE = /[&<>"']/g;
 function esc(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
+  if (str === null || str === undefined) return '';
+  return String(str).replace(ESCAPE_RE, ch => ESCAPE_MAP[ch]);
 }
 
 function formatPrice(n) {
@@ -380,6 +393,10 @@ appContainer.addEventListener('touchend', e => {
 
 /* =========================================================================
    4. SCROLL REVEAL (ANTI-BUG) & LAZY LOADING
+   (Optimized: reveal check uses `offsetParent` instead of
+   `getComputedStyle`, which avoids a synchronous style/layout
+   recalculation per element. Image loading now waits for elements to
+   actually enter the viewport instead of firing every request at once.)
 ========================================================================= */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -401,7 +418,10 @@ function resetReveals(container) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       reveals.forEach(el => {
-        if(window.getComputedStyle(el).display !== 'none') {
+        // offsetParent is null for display:none (and fixed-position) elements;
+        // checking it is far cheaper than getComputedStyle, which forces a
+        // full style recalculation for every element in the loop.
+        if (el.offsetParent !== null) {
           el.style.transition = ''; 
           revealObserver.observe(el);
         }
@@ -410,18 +430,35 @@ function resetReveals(container) {
   });
 }
 
-function initLazyLoading(container = document) {
-  const lazyImages = container.querySelectorAll('.lazy-image:not(.loaded)');
-  lazyImages.forEach(img => {
-    if(img.dataset.src && img.src !== img.dataset.src) { img.src = img.dataset.src; }
-    img.onload = function() {
-      img.classList.add('loaded');
-      if(img.parentElement && img.parentElement.classList.contains('skeleton-bg')) {
-         setTimeout(() => { img.parentElement.classList.remove('skeleton-bg'); }, 500);
-      }
+let lazyImageObserver = null;
+function getLazyImageObserver() {
+  if (lazyImageObserver) return lazyImageObserver;
+  lazyImageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      loadLazyImage(entry.target);
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.01 });
+  return lazyImageObserver;
+}
+
+function loadLazyImage(img) {
+  if (!img.dataset.src || img.classList.contains('loaded')) return;
+  if (img.src !== img.dataset.src) img.src = img.dataset.src;
+  img.onload = function () {
+    img.classList.add('loaded');
+    if (img.parentElement && img.parentElement.classList.contains('skeleton-bg')) {
+      setTimeout(() => { img.parentElement.classList.remove('skeleton-bg'); }, 500);
     }
-    if(img.complete) img.onload();
-  });
+  };
+  if (img.complete) img.onload();
+}
+
+function initLazyLoading(container = document) {
+  const observer = getLazyImageObserver();
+  const lazyImages = container.querySelectorAll('.lazy-image:not(.loaded)');
+  lazyImages.forEach(img => observer.observe(img));
 }
 
 /* Navbar Effect on Scroll (rAF-throttled for smoother low-end performance) */

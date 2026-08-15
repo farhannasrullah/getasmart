@@ -65,6 +65,33 @@ const FIELDS = [
   'waMessage', 'order'
 ];
 
+/* ============ FALLBACK DEFAULTS ============
+   Supaya produk yang diinput minim (cuma field wajib) tetap tampil rapi
+   di katalog & halaman detail — bukan kosong melompong. Fallback ini
+   diterapkan sekali di sini, saat SIMPAN, jadi data yang masuk ke
+   Firestore sudah lengkap dan sisi situs utama (app.js) tidak perlu
+   tahu-menahu soal field mana yang kosong. */
+const CATEGORY_LABELS = { kopi: 'Kopi', gula: 'Gula Aren', kriya: 'Kriya' };
+const DEFAULT_SPEC1 = { label: 'Kualitas', value: 'Premium', pct: '80%' };
+const DEFAULT_SPEC2 = { label: 'Keaslian', value: '100% Asli', pct: '100%' };
+const DEFAULT_UNIT = '/ pcs';
+const DEFAULT_BADGE = 'Produk Pilihan';
+
+function val(id) {
+  return document.getElementById(id).value.trim();
+}
+
+function withFallback(value, fallback) {
+  return value ? value : fallback;
+}
+
+/* Pastikan persen selalu diakhiri '%' walau admin lupa ngetik simbolnya,
+   dan jatuh ke default kalau field-nya dikosongkan sama sekali. */
+function normalizePct(value, fallback) {
+  if (!value) return fallback;
+  return value.endsWith('%') ? value : value + '%';
+}
+
 function openModal(id, data) {
   form.reset();
   document.getElementById('f-id').value = id || '';
@@ -94,25 +121,30 @@ document.getElementById('modal-cancel-btn').addEventListener('click', closeModal
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('f-id').value;
+
+  const name = val('f-name');
+  const category = document.getElementById('f-category').value;
+  const imgMain = val('f-imgMain');
+
   const payload = {
-    name: document.getElementById('f-name').value.trim(),
-    category: document.getElementById('f-category').value,
-    categoryLabel: document.getElementById('f-categoryLabel').value.trim(),
+    name,
+    category,
+    categoryLabel: withFallback(val('f-categoryLabel'), CATEGORY_LABELS[category] || category),
     price: Number(document.getElementById('f-price').value) || 0,
-    unit: document.getElementById('f-unit').value.trim(),
-    badge: document.getElementById('f-badge').value.trim(),
-    size: document.getElementById('f-size').value,
-    desc: document.getElementById('f-desc').value.trim(),
-    imgMain: document.getElementById('f-imgMain').value.trim(),
-    img1: document.getElementById('f-img1').value.trim(),
-    img2: document.getElementById('f-img2').value.trim(),
-    spec1Label: document.getElementById('f-spec1Label').value.trim(),
-    spec1Value: document.getElementById('f-spec1Value').value.trim(),
-    spec1Pct: document.getElementById('f-spec1Pct').value.trim(),
-    spec2Label: document.getElementById('f-spec2Label').value.trim(),
-    spec2Value: document.getElementById('f-spec2Value').value.trim(),
-    spec2Pct: document.getElementById('f-spec2Pct').value.trim(),
-    waMessage: document.getElementById('f-waMessage').value.trim(),
+    unit: withFallback(val('f-unit'), DEFAULT_UNIT),
+    badge: withFallback(val('f-badge'), DEFAULT_BADGE),
+    size: document.getElementById('f-size').value || 'normal',
+    desc: val('f-desc'),
+    imgMain,
+    img1: withFallback(val('f-img1'), imgMain),
+    img2: withFallback(val('f-img2'), imgMain),
+    spec1Label: withFallback(val('f-spec1Label'), DEFAULT_SPEC1.label),
+    spec1Value: withFallback(val('f-spec1Value'), DEFAULT_SPEC1.value),
+    spec1Pct: normalizePct(val('f-spec1Pct'), DEFAULT_SPEC1.pct),
+    spec2Label: withFallback(val('f-spec2Label'), DEFAULT_SPEC2.label),
+    spec2Value: withFallback(val('f-spec2Value'), DEFAULT_SPEC2.value),
+    spec2Pct: normalizePct(val('f-spec2Pct'), DEFAULT_SPEC2.pct),
+    waMessage: withFallback(val('f-waMessage'), name),
     order: Number(document.getElementById('f-order').value) || 0,
     active: document.getElementById('f-active').checked,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -146,10 +178,13 @@ async function deleteProduct(id, name) {
   }
 }
 
+/* String-based escaping (lihat catatan yang sama di app.js) — lebih
+   murah daripada bikin/buang elemen DOM untuk tiap field tiap baris. */
+const ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const ESCAPE_RE = /[&<>"']/g;
 function esc(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
+  if (str === null || str === undefined) return '';
+  return String(str).replace(ESCAPE_RE, ch => ESCAPE_MAP[ch]);
 }
 
 function rowHTML(id, p) {
@@ -163,11 +198,11 @@ function rowHTML(id, p) {
           <img src="${esc(p.imgMain)}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.visibility='hidden'"/>
           <div>
             <p class="font-semibold text-gray-800">${esc(p.name)}</p>
-            <p class="text-xs text-gray-400">${esc(p.unit)}</p>
+            <p class="text-xs text-gray-400">${esc(p.unit || DEFAULT_UNIT)}</p>
           </div>
         </div>
       </td>
-      <td class="px-4 py-3 text-gray-600">${esc(p.category)}</td>
+      <td class="px-4 py-3 text-gray-600">${esc(p.categoryLabel || CATEGORY_LABELS[p.category] || p.category || '-')}</td>
       <td class="px-4 py-3 text-gray-600">Rp ${Number(p.price || 0).toLocaleString('id-ID')}</td>
       <td class="px-4 py-3 text-gray-600">${esc(p.order ?? 0)}</td>
       <td class="px-4 py-3">${statusBadge}</td>
