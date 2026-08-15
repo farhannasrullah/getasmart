@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// -----------------------------------------------------------------
+// PENTING - baca dulu sebelum paste ke Firebase Console:
+//
+// Admin panel (public/admin.html) memakai password sisi-CLIENT saja
+// (lihat public/admin-config.js). Firestore Rules TIDAK BISA memvalidasi
+// password client itu tanpa Firebase Auth. Artinya siapa pun yang tahu
+// endpoint Firestore project ini (bisa dilihat dari network tab browser)
+// secara teknis bisa baca/tulis collection "products" langsung,
+// tanpa lewat admin.html sama sekali.
+//
+// Rules di bawah ini membatasi ke collection "products" saja (bukan
+// seluruh database) dan cukup untuk pemakaian internal/skala kecil
+// seperti KKN/UMKM. KALAU nanti butuh proteksi serius (banyak orang
+// luar tahu URL project, data sensitif, dsb), upgrade admin panel
+// pakai Firebase Authentication dan ganti rule write di bawah jadi
+// `allow write: if request.auth != null;`
+// -----------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true; // lihat catatan di atas — ganti kalau butuh lebih aman
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -305,47 +305,8 @@
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6 mb-20 items-stretch" id="catalog-grid">
         
-        <div onclick="showProduct('kopi')" data-category="kopi" class="catalog-item cursor-pointer glass-card rounded-2xl md:rounded-3xl md:col-span-8 overflow-hidden group relative flex flex-col md:flex-row reveal">
-          <div class="w-full md:w-[61.8%] relative aspect-golden md:aspect-auto md:h-full overflow-hidden skeleton-bg image-wrapper">
-            <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-src="https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=800" alt="Kopi Robusta Getas" loading="lazy"/>
-          </div>
-          <div class="w-full md:w-[38.2%] p-5 md:p-8 flex flex-col justify-center bg-white/20 dark:bg-black/20 flex-grow">
-            <span class="inline-block bg-secondary-container/50 dark:bg-secondary-container/20 text-on-secondary-container dark:text-secondary-fixed font-semibold text-[10px] md:text-xs px-2 md:px-3 py-1 rounded-full w-fit mb-3 md:mb-4">Premium Harvest</span>
-            <h2 class="text-2xl md:text-3xl font-bold text-primary mb-2 md:mb-3">Kopi Robusta Getas</h2>
-            <p class="text-sm md:text-base text-on-surface-variant mb-6 md:mb-8 desc-clamp">Dipetik langsung dari lereng gunung yang sejuk, menawarkan profil rasa yang berani, earthy, dengan sentuhan dark chocolate.</p>
-            <div class="flex items-center justify-between mt-auto pt-4 border-t md:border-none border-primary/5">
-              <span class="text-xl md:text-2xl font-extrabold text-primary">Rp 45.000</span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Kopi Robusta Getas (250g)')" aria-label="Pesan Kopi Robusta Getas via WhatsApp" class="liquid-btn w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-on-secondary-fixed shadow-md"><span class="material-symbols-outlined text-[20px] md:text-[24px]" aria-hidden="true">shopping_cart</span></button>
-            </div>
-          </div>
-        </div>
-
-        <div onclick="showProduct('gula')" data-category="gula" class="catalog-item cursor-pointer glass-card rounded-2xl md:rounded-3xl md:col-span-4 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow reveal delay-100">
-          <div class="w-full aspect-[4/3] relative overflow-hidden skeleton-bg image-wrapper">
-           <!-- Cari elemen img Gula Aren dan ubah linknya -->
-<img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-src="https://images.unsplash.com/photo-1775817590687-f1da5d70d9ad?auto=format&fit=crop&q=80&w=600" alt="Gula Aren" loading="lazy"/></div>
-          <div class="p-5 md:p-6 flex flex-col flex-grow bg-white/10 dark:bg-black/20">
-            <h3 class="text-lg md:text-xl font-bold text-primary mb-1 md:mb-2">Gula Aren</h3>
-            <p class="text-on-surface-variant text-xs md:text-sm mb-4 md:mb-6 desc-clamp">Gula aren cetak asli hasil sadapan nira lokal. Cocok untuk masakan, jamu, dan minuman tradisional.</p>
-            <div class="flex items-center justify-between mt-auto pt-3 border-t border-primary/5">
-              <span class="text-base md:text-lg text-secondary dark:text-secondary-fixed font-bold">Rp 28.000</span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Gula Aren Getas (500g)')" aria-label="Pesan Gula Aren Getas via WhatsApp" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined text-[20px] md:text-[24px]" aria-hidden="true">add_shopping_cart</span></button>
-            </div>
-          </div>
-        </div>
-
-        <div onclick="showProduct('biting')" data-category="kriya" class="catalog-item cursor-pointer glass-card rounded-2xl md:rounded-3xl md:col-span-6 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow reveal">
-          <div class="w-full aspect-[4/3] relative overflow-hidden skeleton-bg image-wrapper">
-            <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-src="https://images.unsplash.com/photo-1599596489433-2bf0f9a27bb4?auto=format&fit=crop&q=80&w=600" alt="Biting Bambu Craft" loading="lazy"/>
-          </div>
-          <div class="p-5 md:p-6 flex flex-col flex-grow bg-white/10 dark:bg-black/20">
-            <h3 class="text-lg md:text-xl font-bold text-primary mb-1 md:mb-2">Biting Bambu Craft</h3>
-            <p class="text-on-surface-variant text-xs md:text-sm mb-4 md:mb-6 desc-clamp">Tusuk bambu ukir tradisional, kokoh dan ramah lingkungan untuk hidangan Anda.</p>
-            <div class="flex items-center justify-between mt-auto pt-3 border-t border-primary/5">
-              <span class="text-base md:text-lg text-secondary dark:text-secondary-fixed font-bold">Rp 15.000 <span class="text-[10px] md:text-xs font-normal">/ pack</span></span>
-              <button onclick="event.stopPropagation(); openWhatsApp('order', 'Biting Bambu Craft')" aria-label="Pesan Biting Bambu Craft via WhatsApp" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined text-[20px] md:text-[24px]" aria-hidden="true">add_shopping_cart</span></button>
-            </div>
-          </div>
+        <div id="catalog-dynamic-items" class="contents">
+          <p class="col-span-12 text-center text-on-surface-variant py-10">Memuat produk...</p>
         </div>
 
         <div class="catalog-item glass-card rounded-2xl md:rounded-3xl md:col-span-6 overflow-hidden bg-primary/5 dark:bg-primary/10 flex flex-col justify-center items-center text-center p-6 md:p-8 border border-primary/20 relative reveal delay-200">
@@ -760,6 +721,10 @@
   </a>
 </nav>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-init.js"></script>
 <script src="app.js" defer></script>
 
 </body>

@@ -117,61 +117,115 @@ function filterCatalog(category, btnElement) {
 }
 
 /* =========================================================================
-   0.5 DYNAMIC PRODUCT DETAIL LOGIC
+   0.5 DYNAMIC PRODUCT DATA — dimuat dari Firestore (collection "products")
+   Satu sumber data untuk katalog & halaman detail (tidak ada lagi hardcode
+   dobel di HTML + JS). CRUD produk dilakukan lewat /admin.html.
 ========================================================================= */
-const PRODUCTS = {
-  kopi: {
-    category: "Kopi Robusta",
-    badge: "Best Seller",
-    name: "Kopi Robusta Getas",
-    price: "Rp 45.000",
-    unit: "/ 250g",
-    desc: "Ditanam di ketinggian ideal lereng gunung Desa Getas, kopi Robusta kami menawarkan profil rasa yang kuat dengan tingkat keasaman rendah. Diproses secara tradisional oleh petani lokal.",
-    imgMain: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=1000",
-    img1: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=600",
-    img2: "https://images.unsplash.com/photo-1611162458324-aae1eb4129a4?auto=format&fit=crop&q=80&w=600",
-    spec1Label: "Roast Level", spec1Value: "Medium-Dark", spec1Pct: "75%",
-    spec2Label: "Body", spec2Value: "Full", spec2Pct: "100%",
-    wa: "Kopi Robusta Getas (250g)"
-  },
-  gula: {
-    category: "Gula Aren",
-    badge: "Best Seller",
-    name: "Gula Aren Getas",
-    price: "Rp 28.000",
-    unit: "/ 500g",
-    desc: "Gula aren cetak asli, dibuat dari nira aren pilihan yang dimasak dan dicetak secara tradisional oleh perajin lokal Desa Getas. Rasa karamel alami tanpa bahan pengawet, cocok untuk minuman tradisional, jamu, maupun masakan sehari-hari.",
-    imgMain: "https://images.unsplash.com/photo-1775817590687-f1da5d70d9ad?auto=format&fit=crop&q=80&w=1000",
-    img1: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=600",
-    img2: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=600",
-    spec1Label: "Bentuk", spec1Value: "Cetak Batok", spec1Pct: "60%",
-    spec2Label: "Kemurnian", spec2Value: "100% Nira Aren", spec2Pct: "100%",
-    wa: "Gula Aren Getas (500g)"
-  },
-  biting: {
-    category: "Kriya Bambu",
-    badge: "Kerajinan Lokal",
-    name: "Biting Bambu Craft",
-    price: "Rp 15.000",
-    unit: "/ pack (isi 50)",
-    desc: "Tusuk bambu (biting) ukir tradisional buatan tangan pengrajin Desa Getas. Kokoh, ramah lingkungan, dan cocok untuk sate, jajanan pasar, hingga dekorasi hidangan.",
-    imgMain: "https://images.unsplash.com/photo-1517045330398-3f5926ec370b?auto=format&fit=crop&q=80&w=1000",
-    img1: "https://images.unsplash.com/photo-1584985250499-52e18d6a86ee?auto=format&fit=crop&q=80&w=600",
-    img2: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600",
-    spec1Label: "Bahan", spec1Value: "Bambu Pilihan", spec1Pct: "90%",
-    spec2Label: "Ketahanan", spec2Value: "Kuat & Tahan Lama", spec2Pct: "85%",
-    wa: "Biting Bambu Craft"
+let PRODUCTS = {};
+
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function formatPrice(n) {
+  const num = Number(n);
+  return 'Rp ' + (isNaN(num) ? '0' : num.toLocaleString('id-ID'));
+}
+
+function largeCardHTML(id, p) {
+  return `
+    <div data-product-id="${esc(id)}" data-category="${esc(p.category)}" class="catalog-item cursor-pointer glass-card rounded-2xl md:rounded-3xl md:col-span-8 overflow-hidden group relative flex flex-col md:flex-row reveal">
+      <div class="w-full md:w-[61.8%] relative aspect-golden md:aspect-auto md:h-full overflow-hidden skeleton-bg image-wrapper">
+        <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-src="${esc(p.imgMain)}" alt="${esc(p.name)}" loading="lazy"/>
+      </div>
+      <div class="w-full md:w-[38.2%] p-5 md:p-8 flex flex-col justify-center bg-white/20 dark:bg-black/20 flex-grow">
+        <span class="inline-block bg-secondary-container/50 dark:bg-secondary-container/20 text-on-secondary-container dark:text-secondary-fixed font-semibold text-[10px] md:text-xs px-2 md:px-3 py-1 rounded-full w-fit mb-3 md:mb-4">${esc(p.badge)}</span>
+        <h2 class="text-2xl md:text-3xl font-bold text-primary mb-2 md:mb-3">${esc(p.name)}</h2>
+        <p class="text-sm md:text-base text-on-surface-variant mb-6 md:mb-8 desc-clamp">${esc(p.desc)}</p>
+        <div class="flex items-center justify-between mt-auto pt-4 border-t md:border-none border-primary/5">
+          <span class="text-xl md:text-2xl font-extrabold text-primary">${formatPrice(p.price)}</span>
+          <button data-wa-order="${esc(id)}" aria-label="Pesan ${esc(p.name)} via WhatsApp" class="liquid-btn w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-on-secondary-fixed shadow-md"><span class="material-symbols-outlined text-[20px] md:text-[24px]" aria-hidden="true">shopping_cart</span></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function normalCardHTML(id, p) {
+  return `
+    <div data-product-id="${esc(id)}" data-category="${esc(p.category)}" class="catalog-item cursor-pointer glass-card rounded-2xl md:rounded-3xl md:col-span-4 overflow-hidden group flex flex-col hover:shadow-lg transition-shadow reveal">
+      <div class="w-full aspect-[4/3] relative overflow-hidden skeleton-bg image-wrapper">
+        <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-src="${esc(p.imgMain)}" alt="${esc(p.name)}" loading="lazy"/>
+      </div>
+      <div class="p-5 md:p-6 flex flex-col flex-grow bg-white/10 dark:bg-black/20">
+        <h3 class="text-lg md:text-xl font-bold text-primary mb-1 md:mb-2">${esc(p.name)}</h3>
+        <p class="text-on-surface-variant text-xs md:text-sm mb-4 md:mb-6 desc-clamp">${esc(p.desc)}</p>
+        <div class="flex items-center justify-between mt-auto pt-3 border-t border-primary/5">
+          <span class="text-base md:text-lg text-secondary dark:text-secondary-fixed font-bold">${formatPrice(p.price)} <span class="text-[10px] md:text-xs font-normal">${esc(p.unit)}</span></span>
+          <button data-wa-order="${esc(id)}" aria-label="Pesan ${esc(p.name)} via WhatsApp" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform"><span class="material-symbols-outlined text-[20px] md:text-[24px]" aria-hidden="true">add_shopping_cart</span></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCatalog(list) {
+  const container = document.getElementById('catalog-dynamic-items');
+  if (!container) return;
+  if (!list.length) {
+    container.innerHTML = '<p class="col-span-12 text-center text-on-surface-variant py-10">Belum ada produk. Tambahkan lewat <a href="/admin.html" class="underline font-semibold">admin panel</a>.</p>';
+    return;
   }
-};
+  container.innerHTML = list.map(({ id, data }) =>
+    data.size === 'large' ? largeCardHTML(id, data) : normalCardHTML(id, data)
+  ).join('');
+}
+
+async function loadProducts() {
+  const container = document.getElementById('catalog-dynamic-items');
+  try {
+    const snap = await window.db.collection('products').orderBy('order', 'asc').get();
+    const list = [];
+    PRODUCTS = {};
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.active === false) return;
+      PRODUCTS[doc.id] = data;
+      list.push({ id: doc.id, data });
+    });
+    renderCatalog(list);
+    initLazyLoading(document.getElementById('page-catalog'));
+    resetReveals(document.getElementById('page-catalog'));
+  } catch (err) {
+    console.error('[GetasMart] Gagal memuat produk dari Firestore:', err);
+    if (container) {
+      container.innerHTML = '<p class="col-span-12 text-center text-red-500 py-10">Gagal memuat produk. Cek koneksi internet atau konfigurasi Firebase di firebase-config.js.</p>';
+    }
+  }
+}
+
+document.getElementById('catalog-grid').addEventListener('click', (e) => {
+  const waBtn = e.target.closest('[data-wa-order]');
+  if (waBtn) {
+    e.stopPropagation();
+    const p = PRODUCTS[waBtn.dataset.waOrder];
+    if (p) openWhatsApp('order', p.waMessage || p.name);
+    return;
+  }
+  const card = e.target.closest('[data-product-id]');
+  if (card) showProduct(card.dataset.productId);
+});
+
+loadProducts();
 
 function showProduct(id) {
   const p = PRODUCTS[id];
   if (!p) return;
 
-  document.getElementById('product-badge-category').textContent = p.category;
+  document.getElementById('product-badge-category').textContent = p.categoryLabel || p.category;
   document.getElementById('product-badge-special').textContent = p.badge;
   document.getElementById('product-title').textContent = p.name;
-  document.getElementById('product-price').textContent = p.price;
+  document.getElementById('product-price').textContent = formatPrice(p.price);
   document.getElementById('product-unit').textContent = p.unit;
   document.getElementById('product-desc').textContent = p.desc;
   document.getElementById('product-spec1-label').textContent = p.spec1Label;
@@ -180,7 +234,7 @@ function showProduct(id) {
   document.getElementById('product-spec2-label').textContent = p.spec2Label;
   document.getElementById('product-spec2-value').textContent = p.spec2Value;
   document.getElementById('product-spec2-bar').style.width = p.spec2Pct;
-  currentProductWA = p.wa;
+  currentProductWA = p.waMessage || p.name;
 
   const imgMain = document.getElementById('product-img-main');
   const img1 = document.getElementById('product-img-1');
