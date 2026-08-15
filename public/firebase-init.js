@@ -4,7 +4,7 @@
  * dan firebase-config.js.
  */
 (function () {
-  if (!window.firebaseConfig || window.firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY") {
+  if (!window.firebaseConfig || window.firebaseConfig.apiKey === "AIzaSyCAi0OzHPynjN5d4RzxJqduJKfemBrQuKs") {
     console.error(
       "[GetasMart] firebase-config.js belum diisi kredensial asli. " +
       "Buka public/firebase-config.js dan isi sesuai project Firebase kamu."

@@ -182,6 +182,66 @@ function normalCardHTML(id, p) {
     </div>`;
 }
 
+/* =========================================================================
+   0.55 HOME "HASIL PANEN PILIHAN" — disinkronkan dengan data katalog
+   Memakai data Firestore yang sama persis dengan katalog (tidak ada lagi
+   produk/gambar yang di-hardcode di beranda). Kartu besar = produk
+   unggulan pertama, dua kartu kecil = dua produk berikutnya. Di mobile,
+   dua kartu kecil disusun berdampingan (grid 2 kolom, aspect-square) agar
+   total tinggi gambar di beranda tidak berlebihan.
+========================================================================= */
+function homeLargeCardHTML(id, p) {
+  return `
+    <div data-product-id="${esc(id)}" class="cursor-pointer glass-card rounded-2xl md:rounded-3xl p-5 md:p-8 flex flex-col justify-end relative overflow-hidden group md:col-span-2 aspect-[4/3] sm:aspect-[1.618/1] md:aspect-auto reveal">
+      <div class="absolute inset-0 skeleton-bg image-wrapper z-0">
+        <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-src="${esc(p.imgMain)}" alt="${esc(p.name)}" loading="lazy">
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 transition-opacity group-hover:opacity-90"></div>
+      <div class="relative z-20 transform transition-transform duration-500 group-hover:-translate-y-2 mt-auto">
+        <span class="px-2 md:px-3 py-1 bg-white/20 text-white rounded-full text-[10px] md:text-xs font-semibold backdrop-blur-md mb-2 md:mb-3 inline-block">${esc(p.badge || 'Best Seller')}</span>
+        <h3 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">${esc(p.name)}</h3>
+        <p class="text-white/80 text-xs md:text-base w-[85%] md:w-3/4 desc-clamp">${esc(p.desc)}</p>
+      </div>
+    </div>`;
+}
+
+function homeSmallCardHTML(id, p) {
+  return `
+    <div data-product-id="${esc(id)}" class="cursor-pointer glass-card rounded-2xl md:rounded-3xl p-5 md:p-6 flex flex-col justify-end relative overflow-hidden group aspect-square md:aspect-[4/3] reveal">
+      <div class="absolute inset-0 skeleton-bg image-wrapper z-0">
+        <img class="lazy-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-src="${esc(p.imgMain)}" alt="${esc(p.name)}" loading="lazy"/>
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent z-10"></div>
+      <div class="relative z-20 mt-auto">
+        <h3 class="text-base md:text-xl font-bold text-white mb-0.5 md:mb-1">${esc(p.name)}</h3>
+        <p class="text-white/80 text-[11px] md:text-sm desc-clamp">${esc(p.shortDesc || p.desc)}</p>
+      </div>
+    </div>`;
+}
+
+function renderHomeFeatured(list) {
+  const container = document.getElementById('home-featured-grid');
+  if (!container) return;
+  if (!list.length) {
+    container.innerHTML = '';
+    return;
+  }
+  const [first, ...rest] = list;
+  const smalls = rest.slice(0, 2);
+  let html = homeLargeCardHTML(first.id, first.data);
+  if (smalls.length) {
+    html += `<div class="grid grid-cols-2 gap-3 md:flex md:flex-col md:gap-6 md:col-span-1">
+      ${smalls.map(({ id, data }) => homeSmallCardHTML(id, data)).join('')}
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+document.getElementById('home-featured-wrap').addEventListener('click', (e) => {
+  const card = e.target.closest('[data-product-id]');
+  if (card) showProduct(card.dataset.productId);
+});
+
 function renderCatalog(list) {
   const container = document.getElementById('catalog-dynamic-items');
   if (!container) return;
@@ -207,12 +267,24 @@ async function loadProducts() {
       list.push({ id: doc.id, data });
     });
     renderCatalog(list);
+
+    // Beranda memakai produk yang ditandai featured:true di Firestore;
+    // jika belum ada yang ditandai, tampilkan 3 produk pertama (urutan "order").
+    const featured = list.filter(item => item.data.featured === true);
+    renderHomeFeatured(featured.length ? featured.slice(0, 3) : list.slice(0, 3));
+
     initLazyLoading(document.getElementById('page-catalog'));
     resetReveals(document.getElementById('page-catalog'));
+    initLazyLoading(document.getElementById('page-home'));
+    resetReveals(document.getElementById('page-home'));
   } catch (err) {
     console.error('[GetasMart] Gagal memuat produk dari Firestore:', err);
     if (container) {
       container.innerHTML = '<p class="col-span-12 text-center text-red-500 py-10">Gagal memuat produk. Cek koneksi internet atau konfigurasi Firebase di firebase-config.js.</p>';
+    }
+    const homeContainer = document.getElementById('home-featured-grid');
+    if (homeContainer) {
+      homeContainer.innerHTML = '<p class="md:col-span-3 text-center text-on-surface-variant py-6 text-sm">Belum bisa memuat produk pilihan.</p>';
     }
   }
 }
