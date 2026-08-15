@@ -71,7 +71,7 @@ const FIELDS = [
    diterapkan sekali di sini, saat SIMPAN, jadi data yang masuk ke
    Firestore sudah lengkap dan sisi situs utama (app.js) tidak perlu
    tahu-menahu soal field mana yang kosong. */
-const CATEGORY_LABELS = { kopi: 'Kopi', gula: 'Gula Aren', kriya: 'Kriya' };
+const CATEGORY_LABELS = { kopi: 'Kopi', gula: 'Gula Aren', Lainnya: 'Lainnya' };
 const DEFAULT_SPEC1 = { label: 'Kualitas', value: 'Premium', pct: '80%' };
 const DEFAULT_SPEC2 = { label: 'Keaslian', value: '100% Asli', pct: '100%' };
 const DEFAULT_UNIT = '/ pcs';
