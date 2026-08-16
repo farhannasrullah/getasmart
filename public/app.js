@@ -1550,3 +1550,21 @@ window.addEventListener(
     passive: true
   }
 );
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(registration => {
+        console.log(
+          "[GetasMart] Service Worker aktif:",
+          registration.scope
+        );
+      })
+      .catch(error => {
+        console.error(
+          "[GetasMart] Service Worker gagal:",
+          error
+        );
+      });
+  });
+}

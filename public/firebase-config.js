@@ -15,5 +15,4 @@ window.firebaseConfig = {
   storageBucket: "getasmart-136.firebasestorage.app",
   messagingSenderId: "171316019735",
   appId: "1:171316019735:web:183e7e83940a32487d9252"
-
 };
