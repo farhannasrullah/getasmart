@@ -75,7 +75,9 @@ html.dark nav#main-nav { background: rgba(26, 28, 27, 0.8); border-bottom-color:
 html.dark .bg-white { background-color: #2a2c2b; color: #c1ecd4; }
 html.dark .filter-btn.bg-primary { background-color: #c1ecd4; color: #012d1d; }
 
-/* Enhanced Animated Blobs */
+/* Enhanced Animated Blobs
+   These animate forever (infinite keyframes), so unlike .reveal/.lazy-image
+   they never go idle — keeping will-change permanent here is correct. */
 .blob-animated {
   transition: background-color 0.7s ease;
   will-change: transform;
@@ -83,10 +85,13 @@ html.dark .filter-btn.bg-primary { background-color: #c1ecd4; color: #012d1d; }
 
 /* =========================================================================
    Theme Transition Animation Overlay
-   (Optimized: `contain: strict` isolates this layer's rendering from the
-   rest of the page so the browser doesn't re-check layout/paint outside
-   its bounds while the clip-path animates, and `will-change: clip-path`
-   promotes it to its own compositor layer up front instead of mid-animation.)
+   `will-change` is now managed dynamically in JS (set right before the
+   clip-path animation starts, released to 'auto' right after it ends) —
+   see themeToggleBtn click handler in script.js. Do not also set it here:
+   a static value in CSS would just get silently overridden by the inline
+   style JS sets on every click, so keeping both is redundant/misleading.
+   `contain: strict` still isolates this layer's rendering so the browser
+   doesn't re-check layout/paint outside its bounds while it animates.
 ========================================================================= */
 .theme-transition-overlay {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -94,7 +99,6 @@ html.dark .filter-btn.bg-primary { background-color: #c1ecd4; color: #012d1d; }
   clip-path: circle(0% at 50% 50%);
   pointer-events: none;
   transition: clip-path 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-  will-change: clip-path;
   contain: strict;
 }
 html.dark .theme-transition-overlay { background: #f8f9fa; }
@@ -136,12 +140,21 @@ html.dark .theme-transition-overlay { background: #f8f9fa; }
 #splash-screen { transition: opacity 0.6s ease-out, visibility 0.6s ease-out; }
 #splash-screen.hidden-splash { opacity: 0; visibility: hidden; pointer-events: none; }
 
-/* Optimized: same will-change-only-while-animating approach as .lazy-image
-   above. Previously every .reveal element kept a compositor layer alive
-   permanently (even long after it had faded in), which adds up fast on a
-   page with many catalog cards. */
+/* =========================================================================
+   Scroll Reveal
+   (Optimized: will-change now gates on BOTH `.reveal-armed` AND
+   `:not(.visible)`, not just `:not(.visible)` alone. `.reveal-armed` is
+   added by a second, wide-rootMargin IntersectionObserver in script.js
+   (revealArmObserver) shortly before an element nears the viewport —
+   previously every `.reveal` section on the active page got its own
+   compositor layer the instant the page loaded, even ones far below the
+   fold (e.g. the closing CTA at the bottom of the long "Tentang" page).
+   Gating through the observer means a layer is only allocated when the
+   element is actually about to be seen, same principle as the lazy-image
+   rule above.)
+========================================================================= */
 .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
-.reveal:not(.visible) { will-change: opacity, transform; }
+.reveal.reveal-armed:not(.visible) { will-change: opacity, transform; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 .delay-100 { transition-delay: 100ms; }
 .delay-200 { transition-delay: 200ms; }
@@ -171,6 +184,19 @@ html.dark .nav-link::after { background-color: #c1ecd4; }
 /* Navbar Scroll Smoothing */
 nav#main-nav { transition: padding 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease; }
 nav#main-nav.scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+
+/* =========================================================================
+   Product spec bars (#product-spec1-bar / #product-spec2-bar)
+   script.js drives these with `transform: scaleX(value)` instead of the
+   `width` property (width animation is layout-triggering; scaleX is a
+   compositor-only property). transform-origin must be `left` so the bar
+   still shrinks/grows from its starting edge instead of its center.
+========================================================================= */
+#product-spec1-bar, #product-spec2-bar {
+  transform-origin: left;
+  transition: transform 0.6s ease;
+  will-change: transform;
+}
 
 /* Visible keyboard focus (a11y quality floor) */
 a:focus-visible, button:focus-visible {

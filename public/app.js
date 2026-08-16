@@ -1,7 +1,9 @@
 /* =========================================================================
    0.1 DARK/LIGHT MODE LOGIC
    (Optimized: uses transitionend instead of chained setTimeout guesses,
-   and a re-entrancy guard so rapid clicks can't stack animations.)
+   a re-entrancy guard so rapid clicks can't stack animations, and
+   will-change promotion/release around the clip-path animation since
+   clip-path is not a compositor-only property.)
 ========================================================================= */
 
 const themeToggleBtn = document.getElementById('theme-toggle');
@@ -56,6 +58,11 @@ themeToggleBtn.addEventListener('click', () => {
 
   themeTransitionInProgress = true;
 
+  // Promote to its own compositor layer only for the duration of the
+  // animation. clip-path itself still repaints, but isolating it on
+  // its own layer keeps that repaint from touching surrounding content.
+  overlay.style.willChange = 'clip-path, opacity';
+
   overlay.style.transition = 'none';
   overlay.style.clipPath = 'circle(0% at 90% 90%)';
 
@@ -89,6 +96,8 @@ themeToggleBtn.addEventListener('click', () => {
       overlay.style.opacity = '1';
       overlay.style.transition = 'none';
 
+      overlay.style.willChange = 'auto'; // release the layer
+
       themeTransitionInProgress = false;
     };
 
@@ -101,6 +110,9 @@ themeToggleBtn.addEventListener('click', () => {
 
 /* =========================================================================
    0. WHATSAPP & FILTER LOGIC
+   (Optimized: filterCatalog restarts the reveal animation via a forced
+   reflow instead of an arbitrary setTimeout(50), so it's reliable even
+   on slow devices and never races the browser's style commit.)
 ========================================================================= */
 
 const WA_NUMBER = "6281227118511";
@@ -166,9 +178,13 @@ function filterCatalog(category, btnElement) {
 
       item.classList.remove('visible');
 
-      setTimeout(() => {
-        item.classList.add('visible');
-      }, 50);
+      // Force a synchronous reflow so the browser commits the
+      // 'visible' class removal before we re-add it below. This
+      // reliably restarts the CSS transition without guessing at
+      // a timeout duration.
+      void item.offsetWidth;
+
+      item.classList.add('visible');
     } else {
       item.style.display = 'none';
       item.classList.remove('visible');
@@ -616,7 +632,19 @@ loadProducts();
 
 /* =========================================================================
    PRODUCT DETAIL + SAVE LAST PRODUCT
+   (Optimized: spec bars are driven with transform: scaleX() instead of
+   the width property. Animating width is layout-triggering — the browser
+   has to reflow every time the value changes. scaleX() is a compositor
+   property, same class as transform/opacity, so it's GPU-cheap. Requires
+   a small CSS change: give #product-spec1-bar / #product-spec2-bar
+   `transform-origin: left;` and animate `transform` instead of `width`
+   in your transition/CSS rule.)
 ========================================================================= */
+
+function setSpecBar(el, pct) {
+  const value = parseFloat(pct) || 0;
+  el.style.transform = `scaleX(${value / 100})`;
+}
 
 function showProduct(id) {
   const p = PRODUCTS[id];
@@ -675,10 +703,10 @@ function showProduct(id) {
   ).textContent =
     p.spec1Value;
 
-  document.getElementById(
-    'product-spec1-bar'
-  ).style.width =
-    p.spec1Pct;
+  setSpecBar(
+    document.getElementById('product-spec1-bar'),
+    p.spec1Pct
+  );
 
   document.getElementById(
     'product-spec2-label'
@@ -690,10 +718,10 @@ function showProduct(id) {
   ).textContent =
     p.spec2Value;
 
-  document.getElementById(
-    'product-spec2-bar'
-  ).style.width =
-    p.spec2Pct;
+  setSpecBar(
+    document.getElementById('product-spec2-bar'),
+    p.spec2Pct
+  );
 
   currentProductWA =
     p.waMessage || p.name;
@@ -870,6 +898,14 @@ window.addEventListener('load', () => {
 
 /* =========================================================================
    2. SPA NAVIGATION & ANTI-BUG LOGIC
+   (Optimized: page transitions now resolve on the CSS 'transitionend'
+   event instead of two hardcoded setTimeout(400) calls. Previously the
+   400ms had to be kept in sync by hand with the CSS transition duration
+   — any CSS change risked the JS finishing too early/late, cutting the
+   animation short or leaving isTransitioning stuck true on slow
+   devices. transitionend removes that coupling entirely. A safety
+   fallback timeout is kept in case the transition never fires, e.g.
+   the element was display:none or the browser drops the event.)
 ========================================================================= */
 
 let isTransitioning = false;
@@ -898,6 +934,31 @@ const pageAnnouncer =
     'page-announcer'
   );
 
+
+function onceTransitionEnd(el, prop, cb, fallbackMs = 500) {
+  let done = false;
+
+  const finish = () => {
+    if (done) return;
+    done = true;
+    el.removeEventListener('transitionend', handler);
+    clearTimeout(fallbackTimer);
+    cb();
+  };
+
+  const handler = (e) => {
+    if (e.target !== el) return;
+    if (prop && e.propertyName !== prop) return;
+    finish();
+  };
+
+  el.addEventListener('transitionend', handler);
+
+  // Safety net: if the transition never fires (e.g. element was
+  // hidden, or no matching CSS transition exists), don't leave the
+  // UI stuck — run the callback anyway after a generous fallback.
+  const fallbackTimer = setTimeout(finish, fallbackMs);
+}
 
 function showPage(
   name,
@@ -1069,8 +1130,10 @@ function showPage(
         'show'
       );
 
-
-      setTimeout(() => {
+      // Wait for the fade-out transition to actually finish instead
+      // of guessing 400ms. Adjust the property name below ('opacity')
+      // if your CSS transitions a different property for .page.show.
+      onceTransitionEnd(p, 'opacity', () => {
 
         p.classList.remove(
           'active'
@@ -1097,19 +1160,16 @@ function showPage(
               targetPage
             );
 
-
-            setTimeout(() => {
-
-              isTransitioning =
-                false;
-
-            }, 400);
+            // No more nested setTimeout — the enter transition
+            // doesn't need to be awaited before allowing the next
+            // navigation, so we release the lock right away.
+            isTransitioning = false;
 
           });
 
         });
 
-      }, 400);
+      });
     }
   });
 
