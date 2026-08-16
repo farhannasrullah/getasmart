@@ -507,33 +507,127 @@ function renderCatalog(list) {
 
 async function loadProducts() {
   const container = document.getElementById(
-    'catalog-dynamic-items'
+    "catalog-dynamic-items"
   );
 
   try {
-    const snap = await window.db
-      .collection('products')
-      .orderBy('order', 'asc')
-      .get();
+
+    /*
+     * Pastikan Firestore sudah selesai
+     * mengaktifkan persistence.
+     */
+    if (window.firestoreReady) {
+      await window.firestoreReady;
+    }
+
+    if (!window.db) {
+      throw new Error(
+        "Firestore belum tersedia."
+      );
+    }
+
+    const query = window.db
+      .collection("products")
+      .orderBy("order", "asc");
+
+    let snap;
+
+    /*
+     * ======================================================
+     * OFFLINE
+     * ======================================================
+     *
+     * Kalau browser offline, jangan paksa Firestore
+     * mencoba koneksi ke server.
+     *
+     * Langsung ambil dari cache.
+     */
+    if (!navigator.onLine) {
+
+      console.log(
+        "[GetasMart] Offline → membaca products dari Firestore cache..."
+      );
+
+      snap = await query.get({
+        source: "cache"
+      });
+
+    }
+
+    /*
+     * ======================================================
+     * ONLINE
+     * ======================================================
+     */
+    else {
+
+      try {
+
+        console.log(
+          "[GetasMart] Online → mengambil products..."
+        );
+
+        snap = await query.get();
+
+      } catch (serverError) {
+
+        console.warn(
+          "[GetasMart] Server gagal → mencoba Firestore cache...",
+          serverError
+        );
+
+        snap = await query.get({
+          source: "cache"
+        });
+      }
+    }
+
+    /*
+     * ======================================================
+     * RENDER DATA
+     * ======================================================
+     */
 
     const list = [];
 
     PRODUCTS = {};
 
     snap.forEach(doc => {
+
       const data = doc.data();
 
-      if (data.active === false) return;
+      /*
+       * Produk nonaktif jangan ditampilkan.
+       */
+      if (data.active === false) {
+        return;
+      }
 
       PRODUCTS[doc.id] = data;
 
       list.push({
         id: doc.id,
-        data
+        data: data
       });
     });
 
+    console.log(
+      `[GetasMart] Produk berhasil dimuat: ${list.length}`
+    );
+
+    /*
+     * ======================================================
+     * CATALOG
+     * ======================================================
+     */
+
     renderCatalog(list);
+
+    /*
+     * ======================================================
+     * FEATURED
+     * ======================================================
+     */
 
     const featured = list.filter(
       item => item.data.featured === true
@@ -545,47 +639,75 @@ async function loadProducts() {
         : list.slice(0, 3)
     );
 
+    /*
+     * ======================================================
+     * LAZY LOADING
+     * ======================================================
+     */
+
     initLazyLoading(
-      document.getElementById('page-catalog')
+      document.getElementById("page-catalog")
     );
 
     resetReveals(
-      document.getElementById('page-catalog')
+      document.getElementById("page-catalog")
     );
 
     initLazyLoading(
-      document.getElementById('page-home')
+      document.getElementById("page-home")
     );
 
     resetReveals(
-      document.getElementById('page-home')
+      document.getElementById("page-home")
     );
 
   } catch (err) {
 
     console.error(
-      '[GetasMart] Gagal memuat produk dari Firestore:',
+      "[GetasMart] Gagal memuat produk dari Firestore/cache:",
       err
     );
 
+    /*
+     * ======================================================
+     * CATALOG OFFLINE EMPTY STATE
+     * ======================================================
+     */
+
     if (container) {
+
       container.innerHTML = `
-        <p class="col-span-12 text-center text-red-500 py-10">
-          Gagal memuat produk.
-          Cek koneksi internet atau konfigurasi Firebase di firebase-config.js.
-        </p>
+        <div class="col-span-12 text-center py-10">
+          <p class="text-on-surface-variant">
+            Produk belum tersedia secara offline.
+          </p>
+          <p class="text-xs text-outline mt-2">
+            Buka katalog saat online terlebih dahulu agar
+            produk tersimpan di perangkat.
+          </p>
+        </div>
       `;
     }
 
-    const homeContainer = document.getElementById(
-      'home-featured-grid'
-    );
+    /*
+     * ======================================================
+     * HOME OFFLINE EMPTY STATE
+     * ======================================================
+     */
+
+    const homeContainer =
+      document.getElementById(
+        "home-featured-grid"
+      );
 
     if (homeContainer) {
+
       homeContainer.innerHTML = `
-        <p class="md:col-span-3 text-center text-on-surface-variant py-6 text-sm">
-          Belum bisa memuat produk pilihan.
-        </p>
+        <div class="md:col-span-3 text-center py-6">
+          <p class="text-on-surface-variant text-sm">
+            Produk belum tersedia secara offline.
+          </p>
+        </div>
       `;
     }
   }
