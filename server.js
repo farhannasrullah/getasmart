@@ -17,6 +17,12 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server GetasMart berjalan di http://localhost:${PORT}`);
-});
+// Jalankan server cuma pas lokal (dev). Di Vercel, app-nya di-require
+// langsung sebagai serverless function, jadi listen() nggak perlu jalan.
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server GetasMart berjalan di http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;

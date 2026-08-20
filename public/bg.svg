@@ -1,0 +1,137 @@
+<svg
+  width="1600"
+  height="1000"
+  viewBox="0 0 1600 1000"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <!-- Main peach gradient -->
+    <radialGradient id="peach" cx="0" cy="0" r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(330 180) rotate(42) scale(650 560)">
+      <stop offset="0" stop-color="#FFE8C7"/>
+      <stop offset="0.42" stop-color="#FFDEA9"/>
+      <stop offset="1" stop-color="#FDC2A3" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Secondary warm glow -->
+    <radialGradient id="coral" cx="0" cy="0" r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(1250 250) rotate(130) scale(600 500)">
+      <stop offset="0" stop-color="#FDC2A3" stop-opacity="0.85"/>
+      <stop offset="0.5" stop-color="#FFD8B7" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FDC2A3" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Green ambient glow -->
+    <radialGradient id="green" cx="0" cy="0" r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(850 850) rotate(-35) scale(700 480)">
+      <stop offset="0" stop-color="#BFE8D2" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#D9F0E3" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#D9F0E3" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Soft center -->
+    <radialGradient id="center" cx="0" cy="0" r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(800 480) scale(700 500)">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.7"/>
+      <stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Blur -->
+    <filter id="blur-xl" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+
+    <filter id="blur-md" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="35"/>
+    </filter>
+
+    <!-- Subtle grain -->
+    <filter id="grain">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.8"
+        numOctaves="3"
+        stitchTiles="stitch"
+      />
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table"
+          tableValues="0 0.035"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <!-- Base -->
+  <rect width="1600" height="1000" fill="#F8F9F6"/>
+
+  <!-- Ambient gradients -->
+  <rect width="1600" height="1000" fill="url(#peach)"/>
+  <rect width="1600" height="1000" fill="url(#coral)"/>
+  <rect width="1600" height="1000" fill="url(#green)"/>
+  <rect width="1600" height="1000" fill="url(#center)"/>
+
+  <!-- Large organic blob -->
+  <path
+    d="
+      M-120 580
+      C80 380 210 420 390 500
+      C570 580 600 760 480 900
+      C350 1050 80 1050 -120 920
+      Z
+    "
+    fill="#FDC2A3"
+    fill-opacity="0.28"
+    filter="url(#blur-xl)"
+  />
+
+  <!-- Top-right organic blob -->
+  <path
+    d="
+      M1120 -120
+      C1360 -30 1530 30 1700 210
+      L1700 -120
+      Z
+    "
+    fill="#FFDEA9"
+    fill-opacity="0.55"
+    filter="url(#blur-xl)"
+  />
+
+  <!-- Bottom green blob -->
+  <path
+    d="
+      M520 1080
+      C620 820 800 760 1010 800
+      C1200 835 1350 950 1450 1080
+      Z
+    "
+    fill="#C8E9D8"
+    fill-opacity="0.32"
+    filter="url(#blur-xl)"
+  />
+
+  <!-- Soft light -->
+  <ellipse
+    cx="800"
+    cy="470"
+    rx="560"
+    ry="320"
+    fill="#FFFFFF"
+    fill-opacity="0.12"
+    filter="url(#blur-md)"
+  />
+
+  <!-- Grain -->
+  <rect
+    width="1600"
+    height="1000"
+    filter="url(#grain)"
+    opacity="0.45"
+  />
+</svg>
