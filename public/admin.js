@@ -1,21 +1,29 @@
 /**
- * GetasMart Admin Panel
- * CRUD Produk via Firebase Firestore
+ * ============================================================
+ * GETASMART ADMIN PANEL
+ * ============================================================
  *
- * Fitur:
- * - Login session sederhana
- * - CRUD produk
- * - Safe DOM initialization
- * - Try/catch semua operasi async
- * - Retry otomatis untuk error Firestore sementara
- * - Exponential backoff
- * - Request lock anti double-click / spam
+ * CRUD Produk GetasMart via Firestore
+ *
+ * Proteksi:
+ * - Initialization aman
+ * - Session admin
+ * - Auto re-login saat credential/auth expired
+ * - Firestore error handling
+ * - Retry exponential backoff
  * - Timeout request
- * - Validasi Firebase
+ * - Anti duplicate request
+ * - Anti double click
  * - HTML escaping
- * - Empty state
- * - Error state
  * - Cache produk
+ * - Modal error handling
+ *
+ * Catatan:
+ * Sistem login saat ini menggunakan:
+ * window.ADMIN_PASSWORD
+ *
+ * sessionStorage hanya menyimpan status login browser.
+ * Firestore tetap menjadi sumber validasi akses sebenarnya.
  */
 
 (() => {
@@ -28,11 +36,11 @@
   const CONFIG = {
     AUTH_KEY: 'getasmart_admin_auth',
 
-    FIRESTORE_COLLECTION: 'products',
+    PRODUCTS_COLLECTION: 'products',
 
     MAX_RETRIES: 3,
 
-    RETRY_BASE_DELAY: 700,
+    RETRY_BASE_DELAY: 800,
 
     REQUEST_TIMEOUT: 15000,
 
@@ -56,6 +64,8 @@
 
   let isDeletingProduct = false;
 
+  let isLoggingOut = false;
+
   let lastLoadTime = 0;
 
   let lastSaveTime = 0;
@@ -67,27 +77,35 @@
 
   /* =========================================================
      DOM REFERENCES
-  ========================================================= */
+     ========================================================= */
 
   let loginScreen = null;
+
   let adminScreen = null;
 
   let loginForm = null;
+
   let loginError = null;
 
   let tableBody = null;
+
   let emptyState = null;
+
   let productCountEl = null;
+
   let loadErrorEl = null;
 
   let modal = null;
+
   let modalTitle = null;
+
   let form = null;
+
   let saveStatus = null;
 
 
   /* =========================================================
-     FIELD PRODUK
+     PRODUCT FIELDS
   ========================================================= */
 
   const FIELDS = [
@@ -115,7 +133,7 @@
 
 
   /* =========================================================
-     DEFAULT / FALLBACK
+     DEFAULT VALUES
   ========================================================= */
 
   const CATEGORY_LABELS = {
@@ -145,7 +163,7 @@
 
 
   /* =========================================================
-     UTILITY
+     BASIC UTILITY
   ========================================================= */
 
   function sleep(ms) {
@@ -155,22 +173,61 @@
   }
 
 
-  function now() {
+  function getNow() {
     return Date.now();
   }
 
 
-  function withFallback(value, fallback) {
-    return value ? value : fallback;
+  function getElement(id) {
+    try {
+      return document.getElementById(id);
+    } catch (err) {
+      console.error(
+        '[GetasMart Admin] getElement error:',
+        err
+      );
+
+      return null;
+    }
   }
 
 
-  function normalizePct(value, fallback) {
-    if (!value) {
+  function val(id) {
+    const el = getElement(id);
+
+    if (!el) {
+      return '';
+    }
+
+    return String(
+      el.value ?? ''
+    ).trim();
+  }
+
+
+  function withFallback(
+    value,
+    fallback
+  ) {
+    return value
+      ? value
+      : fallback;
+  }
+
+
+  function normalizePct(
+    value,
+    fallback
+  ) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
       return fallback;
     }
 
-    const str = String(value).trim();
+    const str =
+      String(value).trim();
 
     if (!str) {
       return fallback;
@@ -182,37 +239,16 @@
   }
 
 
-  function normalizeNumber(value, fallback = 0) {
-    const num = Number(value);
+  function normalizeNumber(
+    value,
+    fallback = 0
+  ) {
+    const number =
+      Number(value);
 
-    return Number.isFinite(num)
-      ? num
+    return Number.isFinite(number)
+      ? number
       : fallback;
-  }
-
-
-  function normalizeString(value) {
-    if (value === null || value === undefined) {
-      return '';
-    }
-
-    return String(value).trim();
-  }
-
-
-  function getElement(id) {
-    return document.getElementById(id);
-  }
-
-
-  function val(id) {
-    const el = getElement(id);
-
-    if (!el) {
-      return '';
-    }
-
-    return normalizeString(el.value);
   }
 
 
@@ -232,17 +268,17 @@
   const ESCAPE_RE = /[&<>"']/g;
 
 
-  function esc(str) {
+  function esc(value) {
     if (
-      str === null ||
-      str === undefined
+      value === null ||
+      value === undefined
     ) {
       return '';
     }
 
-    return String(str).replace(
+    return String(value).replace(
       ESCAPE_RE,
-      (ch) => ESCAPE_MAP[ch]
+      (char) => ESCAPE_MAP[char]
     );
   }
 
@@ -253,25 +289,31 @@
 
   function getDb() {
     try {
-      if (!window.db) {
+      if (
+        !window.db
+      ) {
         throw new Error(
-          'Firebase Firestore belum tersedia. Pastikan window.db sudah diinisialisasi.'
+          'Firebase Firestore belum tersedia. window.db tidak ditemukan.'
         );
       }
 
+
       if (
-        typeof window.db.collection !== 'function'
+        typeof window.db.collection !==
+        'function'
       ) {
         throw new Error(
           'window.db bukan instance Firestore yang valid.'
         );
       }
 
+
       return window.db;
 
     } catch (err) {
+
       console.error(
-        '[GetasMart Admin] Firebase error:',
+        '[GetasMart Admin] Firebase DB error:',
         err
       );
 
@@ -281,21 +323,479 @@
 
 
   /* =========================================================
-     FIREBASE RETRY
+     FIREBASE AUTH ERROR DETECTION
   ========================================================= */
 
-  function isRetryableFirebaseError(err) {
+  function isAuthError(err) {
     if (!err) {
       return false;
     }
 
-    const code = String(
-      err.code || ''
-    ).toLowerCase();
 
-    const message = String(
-      err.message || ''
-    ).toLowerCase();
+    const code =
+      String(
+        err.code || ''
+      ).toLowerCase();
+
+
+    const message =
+      String(
+        err.message || ''
+      ).toLowerCase();
+
+
+    const authCodes = [
+      'permission-denied',
+      'unauthenticated',
+      'auth/id-token-expired',
+      'auth/user-token-expired',
+      'auth/user-disabled',
+      'auth/requires-recent-login',
+      'auth/invalid-user-token',
+      'auth/session-cookie-expired',
+      'auth/invalid-credential'
+    ];
+
+
+    if (
+      authCodes.some(
+        (authCode) =>
+          code === authCode ||
+          code.includes(authCode)
+      )
+    ) {
+      return true;
+    }
+
+
+    const authMessages = [
+      'credential',
+      'authentication',
+      'unauthenticated',
+      'permission denied',
+      'token expired',
+      'id token expired',
+      'user token expired',
+      'invalid user token',
+      'invalid credential'
+    ];
+
+
+    return authMessages.some(
+      (text) =>
+        message.includes(text)
+    );
+  }
+
+
+  /* =========================================================
+     FORCE RE-LOGIN
+  ========================================================= */
+
+  function forceRelogin(
+    message =
+      'Sesi admin telah berakhir. Silakan login kembali.'
+  ) {
+    if (isLoggingOut) {
+      return;
+    }
+
+
+    isLoggingOut = true;
+
+
+    console.warn(
+      '[GetasMart Admin] Sesi/auth expired. Meminta login ulang.'
+    );
+
+
+    try {
+
+      /* -----------------------------------------------------
+         Hapus session admin browser
+      ----------------------------------------------------- */
+
+      try {
+        sessionStorage.removeItem(
+          CONFIG.AUTH_KEY
+        );
+      } catch (storageError) {
+        console.warn(
+          '[GetasMart Admin] Gagal menghapus session:',
+          storageError
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Bersihkan cache produk
+      ----------------------------------------------------- */
+
+      productCache = {};
+
+
+      /* -----------------------------------------------------
+         Tutup modal
+      ----------------------------------------------------- */
+
+      if (modal) {
+        modal.classList.add(
+          'hidden'
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Reset status UI
+      ----------------------------------------------------- */
+
+      if (saveStatus) {
+        saveStatus.textContent =
+          '';
+      }
+
+
+      if (loadErrorEl) {
+        loadErrorEl.textContent =
+          '';
+
+        loadErrorEl.classList.add(
+          'hidden'
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Tampilkan pesan login
+      ----------------------------------------------------- */
+
+      if (loginError) {
+
+        loginError.textContent =
+          message;
+
+        loginError.classList.remove(
+          'hidden'
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Sembunyikan admin
+      ----------------------------------------------------- */
+
+      if (adminScreen) {
+        adminScreen.classList.add(
+          'hidden'
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Tampilkan login
+      ----------------------------------------------------- */
+
+      if (loginScreen) {
+        loginScreen.classList.remove(
+          'hidden'
+        );
+      }
+
+
+      /* -----------------------------------------------------
+         Reset login form
+      ----------------------------------------------------- */
+
+      try {
+
+        if (
+          loginForm &&
+          typeof loginForm.reset ===
+            'function'
+        ) {
+          loginForm.reset();
+        }
+
+
+        const passwordInput =
+          getElement(
+            'login-password'
+          );
+
+
+        if (passwordInput) {
+          passwordInput.value = '';
+
+          setTimeout(() => {
+            try {
+              passwordInput.focus();
+            } catch (_) {}
+          }, 50);
+        }
+
+      } catch (focusError) {
+
+        console.warn(
+          '[GetasMart Admin] Login form reset error:',
+          focusError
+        );
+      }
+
+
+    } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] forceRelogin error:',
+        err
+      );
+
+    } finally {
+
+      setTimeout(() => {
+        isLoggingOut = false;
+      }, 500);
+    }
+  }
+
+
+  /* =========================================================
+     FRIENDLY ERROR
+  ========================================================= */
+
+  function getFriendlyError(err) {
+
+    if (!err) {
+      return (
+        'Terjadi kesalahan yang tidak diketahui.'
+      );
+    }
+
+
+    const code =
+      String(
+        err.code || ''
+      ).toLowerCase();
+
+
+    const message =
+      String(
+        err.message || ''
+      );
+
+
+    if (
+      isAuthError(err)
+    ) {
+      return (
+        'Sesi admin telah berakhir. Silakan login kembali.'
+      );
+    }
+
+
+    switch (code) {
+
+      case 'permission-denied':
+
+        return (
+          'Akses Firestore ditolak oleh Security Rules.'
+        );
+
+
+      case 'unauthenticated':
+
+        return (
+          'Autentikasi Firebase tidak valid.'
+        );
+
+
+      case 'not-found':
+
+        return (
+          'Data tidak ditemukan.'
+        );
+
+
+      case 'already-exists':
+
+        return (
+          'Data sudah ada.'
+        );
+
+
+      case 'resource-exhausted':
+
+        return (
+          'Quota/rate limit Firebase sedang tercapai. Silakan coba lagi beberapa saat.'
+        );
+
+
+      case 'unavailable':
+
+        return (
+          'Firebase sedang tidak tersedia. Silakan coba lagi.'
+        );
+
+
+      case 'deadline-exceeded':
+
+        return (
+          'Request terlalu lama. Periksa koneksi internet.'
+        );
+
+
+      case 'failed-precondition':
+
+        return (
+          'Firestore membutuhkan konfigurasi/index tertentu.'
+        );
+
+
+      case 'network-request-failed':
+
+        return (
+          'Koneksi internet bermasalah.'
+        );
+
+
+      default:
+
+        return (
+          message ||
+          'Terjadi kesalahan. Cek Console browser.'
+        );
+    }
+  }
+
+
+  /* =========================================================
+     UI STATUS
+  ========================================================= */
+
+  function setLoadError(
+    message = ''
+  ) {
+    try {
+
+      if (!loadErrorEl) {
+        return;
+      }
+
+
+      if (!message) {
+
+        loadErrorEl.textContent =
+          '';
+
+        loadErrorEl.classList.add(
+          'hidden'
+        );
+
+        return;
+      }
+
+
+      loadErrorEl.textContent =
+        message;
+
+      loadErrorEl.classList.remove(
+        'hidden'
+      );
+
+    } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] setLoadError error:',
+        err
+      );
+    }
+  }
+
+
+  function setSaveStatus(
+    message = ''
+  ) {
+    try {
+
+      if (saveStatus) {
+        saveStatus.textContent =
+          message;
+      }
+
+    } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] setSaveStatus error:',
+        err
+      );
+    }
+  }
+
+
+  function setButtonsDisabled(
+    disabled
+  ) {
+    try {
+
+      const buttonIds = [
+        'add-product-btn',
+        'modal-close-btn',
+        'modal-cancel-btn'
+      ];
+
+
+      buttonIds.forEach(
+        (id) => {
+
+          const button =
+            getElement(id);
+
+
+          if (button) {
+            button.disabled =
+              disabled;
+          }
+        }
+      );
+
+    } catch (err) {
+
+      console.warn(
+        '[GetasMart Admin] Button state error:',
+        err
+      );
+    }
+  }
+
+
+  /* =========================================================
+     RETRY HELPER
+  ========================================================= */
+
+  function isRetryableError(err) {
+
+    if (!err) {
+      return false;
+    }
+
+
+    if (
+      isAuthError(err)
+    ) {
+      return false;
+    }
+
+
+    const code =
+      String(
+        err.code || ''
+      ).toLowerCase();
+
+
+    const message =
+      String(
+        err.message || ''
+      ).toLowerCase();
+
 
     const retryableCodes = [
       'unavailable',
@@ -307,13 +807,16 @@
       'unknown'
     ];
 
+
     if (
       retryableCodes.some(
-        (item) => code.includes(item)
+        (item) =>
+          code.includes(item)
       )
     ) {
       return true;
     }
+
 
     const retryableMessages = [
       'network',
@@ -324,60 +827,68 @@
       'quota'
     ];
 
+
     return retryableMessages.some(
-      (item) => message.includes(item)
+      (item) =>
+        message.includes(item)
     );
   }
 
 
   async function withRetry(
     operation,
-    options = {}
+    maxRetries =
+      CONFIG.MAX_RETRIES
   ) {
-    const maxRetries =
-      Number.isFinite(options.maxRetries)
-        ? options.maxRetries
-        : CONFIG.MAX_RETRIES;
-
-    const baseDelay =
-      Number.isFinite(options.baseDelay)
-        ? options.baseDelay
-        : CONFIG.RETRY_BASE_DELAY;
 
     let attempt = 0;
 
+
     while (true) {
+
       try {
+
         return await operation();
 
       } catch (err) {
-        const retryable =
-          isRetryableFirebaseError(err);
 
         if (
-          !retryable ||
+          !isRetryableError(err) ||
           attempt >= maxRetries
         ) {
           throw err;
         }
 
-        const jitter =
-          Math.floor(
-            Math.random() * 300
+
+        const exponential =
+          CONFIG.RETRY_BASE_DELAY *
+          Math.pow(
+            2,
+            attempt
           );
 
+
+        const jitter =
+          Math.floor(
+            Math.random() * 400
+          );
+
+
         const delay =
-          (
-            baseDelay *
-            Math.pow(2, attempt)
-          ) + jitter;
+          exponential +
+          jitter;
+
 
         console.warn(
-          `[GetasMart Admin] Retry ${attempt + 1}/${maxRetries} dalam ${delay}ms`,
+          `[GetasMart Admin] Firebase retry ${attempt + 1}/${maxRetries} dalam ${delay}ms`,
           err
         );
 
-        await sleep(delay);
+
+        await sleep(
+          delay
+        );
+
 
         attempt++;
       }
@@ -391,150 +902,67 @@
 
   async function withTimeout(
     promise,
-    timeout = CONFIG.REQUEST_TIMEOUT
+    timeout =
+      CONFIG.REQUEST_TIMEOUT
   ) {
+
     let timer = null;
 
+
     const timeoutPromise =
-      new Promise((_, reject) => {
-        timer = setTimeout(() => {
-          reject(
-            new Error(
-              'Request timeout. Silakan coba lagi.'
-            )
-          );
-        }, timeout);
-      });
+      new Promise(
+        (_, reject) => {
+
+          timer =
+            setTimeout(() => {
+
+              reject(
+                new Error(
+                  'Request timeout. Silakan coba lagi.'
+                )
+              );
+
+            }, timeout);
+        }
+      );
+
 
     try {
+
       return await Promise.race([
         promise,
         timeoutPromise
       ]);
 
     } finally {
+
       if (timer) {
-        clearTimeout(timer);
+        clearTimeout(
+          timer
+        );
       }
     }
   }
 
 
   /* =========================================================
-     FRIENDLY FIREBASE ERROR
-  ========================================================= */
-
-  function getFriendlyError(err) {
-    if (!err) {
-      return 'Terjadi kesalahan yang tidak diketahui.';
-    }
-
-    const code = String(
-      err.code || ''
-    ).toLowerCase();
-
-    switch (code) {
-      case 'permission-denied':
-        return 'Akses ditolak oleh Firestore Security Rules.';
-
-      case 'unauthenticated':
-        return 'Firebase menganggap sesi tidak valid.';
-
-      case 'not-found':
-        return 'Data produk tidak ditemukan.';
-
-      case 'already-exists':
-        return 'Data sudah ada.';
-
-      case 'resource-exhausted':
-        return 'Batas/quota Firebase sedang tercapai. Coba beberapa saat lagi.';
-
-      case 'unavailable':
-        return 'Firebase sedang tidak tersedia. Coba lagi.';
-
-      case 'deadline-exceeded':
-        return 'Request terlalu lama. Periksa koneksi internet.';
-
-      case 'failed-precondition':
-        return 'Firestore membutuhkan konfigurasi/index tertentu.';
-
-      case 'network-request-failed':
-        return 'Koneksi internet bermasalah.';
-
-      default:
-        return err.message ||
-          'Terjadi kesalahan. Cek console browser.';
-    }
-  }
-
-
-  /* =========================================================
-     UI STATUS
-  ========================================================= */
-
-  function setLoadError(message = '') {
-    if (!loadErrorEl) {
-      return;
-    }
-
-    if (!message) {
-      loadErrorEl.textContent = '';
-      loadErrorEl.classList.add('hidden');
-      return;
-    }
-
-    loadErrorEl.textContent = message;
-    loadErrorEl.classList.remove('hidden');
-  }
-
-
-  function setSaveStatus(message = '') {
-    if (!saveStatus) {
-      return;
-    }
-
-    saveStatus.textContent = message;
-  }
-
-
-  function setButtonsDisabled(
-    disabled
-  ) {
-    try {
-      const buttons = [
-        getElement('add-product-btn'),
-        getElement('modal-close-btn'),
-        getElement('modal-cancel-btn')
-      ];
-
-      buttons.forEach((button) => {
-        if (button) {
-          button.disabled = disabled;
-        }
-      });
-
-    } catch (err) {
-      console.warn(
-        '[GetasMart Admin] Gagal mengubah status tombol:',
-        err
-      );
-    }
-  }
-
-
-  /* =========================================================
-     AUTH
+     AUTH SESSION
   ========================================================= */
 
   function isAuthed() {
+
     try {
-      return sessionStorage.getItem(
-        CONFIG.AUTH_KEY
-      ) === 'true';
+
+      return (
+        sessionStorage.getItem(
+          CONFIG.AUTH_KEY
+        ) === 'true'
+      );
 
     } catch (err) {
+
       console.error(
-        '[GetasMart Admin] SessionStorage error:',
+        '[GetasMart Admin] Session error:',
         err
       );
 
@@ -543,48 +971,147 @@
   }
 
 
-  function showAdmin() {
+  function setAuthed(
+    value
+  ) {
+
     try {
-      if (!adminScreen || !loginScreen) {
-        console.error(
-          '[GetasMart Admin] Elemen screen belum siap.'
+
+      if (value) {
+
+        sessionStorage.setItem(
+          CONFIG.AUTH_KEY,
+          'true'
         );
 
-        return;
+      } else {
+
+        sessionStorage.removeItem(
+          CONFIG.AUTH_KEY
+        );
       }
 
-      loginScreen.classList.add('hidden');
-
-      adminScreen.classList.remove(
-        'hidden'
-      );
-
-      loadProductList();
-
     } catch (err) {
+
       console.error(
-        '[GetasMart Admin] showAdmin error:',
+        '[GetasMart Admin] Session update error:',
         err
       );
     }
   }
 
 
-  function showLogin() {
+  /* =========================================================
+     SHOW ADMIN
+  ========================================================= */
+
+  async function showAdmin() {
+
     try {
-      if (!adminScreen || !loginScreen) {
+
+      if (
+        !loginScreen ||
+        !adminScreen
+      ) {
+
+        console.error(
+          '[GetasMart Admin] Login/Admin screen belum tersedia.'
+        );
+
         return;
       }
 
-      adminScreen.classList.add(
+
+      loginScreen.classList.add(
         'hidden'
       );
 
-      loginScreen.classList.remove(
+
+      adminScreen.classList.remove(
         'hidden'
       );
+
+
+      /*
+       * Penting:
+       * loadProductList dipanggil SETELAH semua DOM reference
+       * selesai diinisialisasi.
+       */
+
+      await loadProductList();
 
     } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] showAdmin error:',
+        err
+      );
+
+
+      if (
+        isAuthError(err)
+      ) {
+        forceRelogin();
+      }
+    }
+  }
+
+
+  /* =========================================================
+     SHOW LOGIN
+  ========================================================= */
+
+  function showLogin(
+    message = ''
+  ) {
+
+    try {
+
+      if (
+        adminScreen
+      ) {
+        adminScreen.classList.add(
+          'hidden'
+        );
+      }
+
+
+      if (
+        loginScreen
+      ) {
+        loginScreen.classList.remove(
+          'hidden'
+        );
+      }
+
+
+      if (
+        loginError
+      ) {
+
+        if (message) {
+
+          loginError.textContent =
+            message;
+
+          loginError.classList.remove(
+            'hidden'
+          );
+
+        } else {
+
+          loginError.textContent =
+            '';
+
+          loginError.classList.add(
+            'hidden'
+          );
+        }
+      }
+
+
+    } catch (err) {
+
       console.error(
         '[GetasMart Admin] showLogin error:',
         err
@@ -594,28 +1121,202 @@
 
 
   /* =========================================================
-     MODAL
+     LOGIN
+  ========================================================= */
+
+  function handleLogin(
+    event
+  ) {
+
+    try {
+
+      event.preventDefault();
+
+
+      const passwordInput =
+        getElement(
+          'login-password'
+        );
+
+
+      const password =
+        passwordInput?.value ||
+        '';
+
+
+      const adminPassword =
+        window.ADMIN_PASSWORD;
+
+
+      if (
+        adminPassword ===
+        undefined ||
+        adminPassword ===
+        null
+      ) {
+
+        if (loginError) {
+
+          loginError.textContent =
+            'Konfigurasi password admin tidak ditemukan.';
+
+          loginError.classList.remove(
+            'hidden'
+          );
+        }
+
+
+        console.error(
+          '[GetasMart Admin] window.ADMIN_PASSWORD tidak ditemukan.'
+        );
+
+
+        return;
+      }
+
+
+      if (
+        password !==
+        String(
+          adminPassword
+        )
+      ) {
+
+        if (loginError) {
+
+          loginError.textContent =
+            'Password salah.';
+
+          loginError.classList.remove(
+            'hidden'
+          );
+        }
+
+
+        return;
+      }
+
+
+      /* -----------------------------------------------------
+         LOGIN BERHASIL
+      ----------------------------------------------------- */
+
+      setAuthed(
+        true
+      );
+
+
+      if (loginError) {
+
+        loginError.textContent =
+          '';
+
+        loginError.classList.add(
+          'hidden'
+        );
+      }
+
+
+      if (passwordInput) {
+        passwordInput.value =
+          '';
+      }
+
+
+      showAdmin();
+
+    } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] Login error:',
+        err
+      );
+
+
+      if (loginError) {
+
+        loginError.textContent =
+          'Terjadi kesalahan saat login.';
+
+        loginError.classList.remove(
+          'hidden'
+        );
+      }
+    }
+  }
+
+
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
+
+  function logout() {
+
+    try {
+
+      setAuthed(
+        false
+      );
+
+
+      productCache = {};
+
+
+      closeModal();
+
+
+      showLogin(
+        'Anda telah keluar dari Admin Panel.'
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        '[GetasMart Admin] Logout error:',
+        err
+      );
+    }
+  }
+
+
+  /* =========================================================
+     MODAL OPEN
   ========================================================= */
 
   function openModal(
     id = null,
     data = null
   ) {
+
     try {
-      if (!form || !modal || !modalTitle) {
+
+      if (
+        !form ||
+        !modal ||
+        !modalTitle
+      ) {
+
         throw new Error(
-          'Elemen modal belum tersedia.'
+          'Elemen modal belum tersedia di HTML.'
         );
       }
 
+
       form.reset();
 
+
       const idEl =
-        getElement('f-id');
+        getElement(
+          'f-id'
+        );
+
 
       if (idEl) {
-        idEl.value = id || '';
+        idEl.value =
+          id || '';
       }
+
 
       modalTitle.textContent =
         id
@@ -624,72 +1325,105 @@
 
 
       if (data) {
-        FIELDS.forEach((field) => {
-          const el =
-            getElement(
-              'f-' + field
-            );
 
-          if (!el) {
-            return;
+        FIELDS.forEach(
+          (field) => {
+
+            const el =
+              getElement(
+                'f-' + field
+              );
+
+
+            if (!el) {
+              return;
+            }
+
+
+            el.value =
+              data[field] ??
+              '';
           }
-
-          el.value =
-            data[field] ?? '';
-        });
+        );
 
 
         const activeEl =
-          getElement('f-active');
+          getElement(
+            'f-active'
+          );
+
 
         if (activeEl) {
+
           activeEl.checked =
             data.active !== false;
         }
 
 
         const featuredEl =
-          getElement('f-featured');
+          getElement(
+            'f-featured'
+          );
+
 
         if (featuredEl) {
+
           featuredEl.checked =
             data.featured === true;
         }
 
+
       } else {
 
         const activeEl =
-          getElement('f-active');
+          getElement(
+            'f-active'
+          );
+
 
         if (activeEl) {
-          activeEl.checked = true;
+          activeEl.checked =
+            true;
         }
 
 
         const featuredEl =
-          getElement('f-featured');
+          getElement(
+            'f-featured'
+          );
+
 
         if (featuredEl) {
-          featuredEl.checked = false;
+          featuredEl.checked =
+            false;
         }
 
 
         const orderEl =
-          getElement('f-order');
+          getElement(
+            'f-order'
+          );
+
 
         if (orderEl) {
-          orderEl.value = 0;
+          orderEl.value =
+            0;
         }
       }
 
 
-      setSaveStatus('');
+      setSaveStatus(
+        ''
+      );
+
 
       modal.classList.remove(
         'hidden'
       );
 
+
     } catch (err) {
+
       console.error(
         '[GetasMart Admin] openModal error:',
         err
@@ -698,19 +1432,31 @@
   }
 
 
+  /* =========================================================
+     MODAL CLOSE
+  ========================================================= */
+
   function closeModal() {
+
     try {
-      if (!modal) {
-        return;
+
+      if (
+        modal
+      ) {
+
+        modal.classList.add(
+          'hidden'
+        );
       }
 
-      modal.classList.add(
-        'hidden'
+
+      setSaveStatus(
+        ''
       );
 
-      setSaveStatus('');
 
     } catch (err) {
+
       console.error(
         '[GetasMart Admin] closeModal error:',
         err
@@ -720,15 +1466,19 @@
 
 
   /* =========================================================
-     BUILD PRODUCT PAYLOAD
+     BUILD PAYLOAD
   ========================================================= */
 
-  function buildProductPayload() {
+  function buildPayload() {
+
     const name =
-      val('f-name');
+      val(
+        'f-name'
+      );
 
 
     if (!name) {
+
       throw new Error(
         'Nama produk wajib diisi.'
       );
@@ -736,7 +1486,9 @@
 
 
     const categoryEl =
-      getElement('f-category');
+      getElement(
+        'f-category'
+      );
 
 
     const category =
@@ -745,48 +1497,69 @@
 
 
     const imgMain =
-      val('f-imgMain');
+      val(
+        'f-imgMain'
+      );
 
 
     const shortDesc =
       withFallback(
-        val('f-shortDesc'),
-        val('f-desc')
+        val(
+          'f-shortDesc'
+        ),
+        val(
+          'f-desc'
+        )
+      );
+
+
+    const priceEl =
+      getElement(
+        'f-price'
+      );
+
+
+    const sizeEl =
+      getElement(
+        'f-size'
+      );
+
+
+    const orderEl =
+      getElement(
+        'f-order'
       );
 
 
     const activeEl =
-      getElement('f-active');
+      getElement(
+        'f-active'
+      );
 
 
     const featuredEl =
-      getElement('f-featured');
+      getElement(
+        'f-featured'
+      );
 
 
-    const priceEl =
-      getElement('f-price');
+    return {
 
-
-    const sizeEl =
-      getElement('f-size');
-
-
-    const orderEl =
-      getElement('f-order');
-
-
-    const payload = {
       name,
 
       category,
 
       categoryLabel:
         withFallback(
-          val('f-categoryLabel'),
+          val(
+            'f-categoryLabel'
+          ),
           CATEGORY_LABELS[
             category
-          ] || category
+          ] ||
+            category
         ),
+
 
       price:
         normalizeNumber(
@@ -794,82 +1567,122 @@
           0
         ),
 
+
       unit:
         withFallback(
-          val('f-unit'),
+          val(
+            'f-unit'
+          ),
           DEFAULT_UNIT
         ),
 
+
       badge:
         withFallback(
-          val('f-badge'),
+          val(
+            'f-badge'
+          ),
           DEFAULT_BADGE
         ),
+
 
       size:
         sizeEl?.value ||
         'normal',
 
+
       desc:
-        val('f-desc'),
+        val(
+          'f-desc'
+        ),
+
 
       shortDesc,
 
+
       imgMain,
+
 
       img1:
         withFallback(
-          val('f-img1'),
+          val(
+            'f-img1'
+          ),
           imgMain
         ),
+
 
       img2:
         withFallback(
-          val('f-img2'),
+          val(
+            'f-img2'
+          ),
           imgMain
         ),
 
+
       spec1Label:
         withFallback(
-          val('f-spec1Label'),
+          val(
+            'f-spec1Label'
+          ),
           DEFAULT_SPEC1.label
         ),
 
+
       spec1Value:
         withFallback(
-          val('f-spec1Value'),
+          val(
+            'f-spec1Value'
+          ),
           DEFAULT_SPEC1.value
         ),
 
+
       spec1Pct:
         normalizePct(
-          val('f-spec1Pct'),
+          val(
+            'f-spec1Pct'
+          ),
           DEFAULT_SPEC1.pct
         ),
 
+
       spec2Label:
         withFallback(
-          val('f-spec2Label'),
+          val(
+            'f-spec2Label'
+          ),
           DEFAULT_SPEC2.label
         ),
 
+
       spec2Value:
         withFallback(
-          val('f-spec2Value'),
+          val(
+            'f-spec2Value'
+          ),
           DEFAULT_SPEC2.value
         ),
 
+
       spec2Pct:
         normalizePct(
-          val('f-spec2Pct'),
+          val(
+            'f-spec2Pct'
+          ),
           DEFAULT_SPEC2.pct
         ),
 
+
       waMessage:
         withFallback(
-          val('f-waMessage'),
+          val(
+            'f-waMessage'
+          ),
           name
         ),
+
 
       order:
         normalizeNumber(
@@ -877,22 +1690,23 @@
           0
         ),
 
+
       active:
         activeEl
           ? activeEl.checked
           : true,
 
+
       featured:
-        featuredEl?.checked === true,
+        featuredEl?.checked ===
+        true,
+
 
       updatedAt:
         firebase.firestore
           .FieldValue
           .serverTimestamp()
     };
-
-
-    return payload;
   }
 
 
@@ -903,29 +1717,43 @@
   async function saveProduct(
     event
   ) {
+
     event.preventDefault();
 
-    if (isSavingProduct) {
-      return;
-    }
-
-
-    const currentTime =
-      now();
 
     if (
-      currentTime -
-      lastSaveTime <
-      CONFIG.SAVE_COOLDOWN
+      isSavingProduct
     ) {
       return;
     }
 
-    lastSaveTime = currentTime;
 
-    isSavingProduct = true;
+    const current =
+      getNow();
 
-    setButtonsDisabled(true);
+
+    if (
+      current -
+        lastSaveTime <
+      CONFIG.SAVE_COOLDOWN
+    ) {
+
+      return;
+    }
+
+
+    lastSaveTime =
+      current;
+
+
+    isSavingProduct =
+      true;
+
+
+    setButtonsDisabled(
+      true
+    );
+
 
     setSaveStatus(
       'Menyimpan...'
@@ -933,40 +1761,59 @@
 
 
     try {
+
       const db =
         getDb();
 
 
       const idEl =
-        getElement('f-id');
+        getElement(
+          'f-id'
+        );
 
 
       const id =
-        idEl?.value?.trim() || '';
+        idEl?.value?.trim() ||
+        '';
 
 
       const payload =
-        buildProductPayload();
+        buildPayload();
 
+
+      /* -----------------------------------------------------
+         UPDATE
+      ----------------------------------------------------- */
 
       if (id) {
 
         await withTimeout(
+
           withRetry(
             () =>
+
               db
                 .collection(
-                  CONFIG.FIRESTORE_COLLECTION
+                  CONFIG.PRODUCTS_COLLECTION
                 )
                 .doc(id)
-                .update(payload)
+                .update(
+                  payload
+                )
           )
+
         );
 
+
         console.log(
-          '[GetasMart Admin] Produk berhasil diperbarui:',
+          '[GetasMart Admin] Produk diperbarui:',
           id
         );
+
+
+      /* -----------------------------------------------------
+         ADD
+      ----------------------------------------------------- */
 
       } else {
 
@@ -978,19 +1825,24 @@
 
         const result =
           await withTimeout(
+
             withRetry(
               () =>
+
                 db
                   .collection(
-                    CONFIG.FIRESTORE_COLLECTION
+                    CONFIG.PRODUCTS_COLLECTION
                   )
-                  .add(payload)
+                  .add(
+                    payload
+                  )
             )
+
           );
 
 
         console.log(
-          '[GetasMart Admin] Produk berhasil ditambahkan:',
+          '[GetasMart Admin] Produk ditambahkan:',
           result?.id
         );
       }
@@ -1017,20 +1869,37 @@
       );
 
 
-      const message =
-        getFriendlyError(err);
+      /* -----------------------------------------------------
+         AUTH EXPIRED
+      ----------------------------------------------------- */
+
+      if (
+        isAuthError(err)
+      ) {
+
+        forceRelogin(
+          'Sesi admin telah berakhir. Silakan login kembali.'
+        );
+
+
+        return;
+      }
 
 
       setSaveStatus(
-        message
+        getFriendlyError(err)
       );
 
 
     } finally {
 
-      isSavingProduct = false;
+      isSavingProduct =
+        false;
 
-      setButtonsDisabled(false);
+
+      setButtonsDisabled(
+        false
+      );
     }
   }
 
@@ -1043,6 +1912,7 @@
     id,
     name
   ) {
+
     if (
       !id ||
       isDeletingProduct
@@ -1051,30 +1921,33 @@
     }
 
 
-    const currentTime =
-      now();
+    const current =
+      getNow();
 
 
     if (
-      currentTime -
-      lastDeleteTime <
+      current -
+        lastDeleteTime <
       CONFIG.DELETE_COOLDOWN
     ) {
+
       return;
     }
 
 
     lastDeleteTime =
-      currentTime;
+      current;
 
 
     const confirmed =
       window.confirm(
-        `Hapus produk "${name || 'ini'}"? Aksi ini tidak bisa dibatalkan.`
+        `Hapus produk "${name || 'produk ini'}"?\n\nAksi ini tidak bisa dibatalkan.`
       );
 
 
-    if (!confirmed) {
+    if (
+      !confirmed
+    ) {
       return;
     }
 
@@ -1084,24 +1957,30 @@
 
 
     try {
+
       const db =
         getDb();
 
 
       await withTimeout(
+
         withRetry(
           () =>
+
             db
               .collection(
-                CONFIG.FIRESTORE_COLLECTION
+                CONFIG.PRODUCTS_COLLECTION
               )
               .doc(id)
               .delete()
         )
+
       );
 
 
-      delete productCache[id];
+      delete productCache[
+        id
+      ];
 
 
       await loadProductList(
@@ -1110,7 +1989,7 @@
 
 
       console.log(
-        '[GetasMart Admin] Produk berhasil dihapus:',
+        '[GetasMart Admin] Produk dihapus:',
         id
       );
 
@@ -1121,6 +2000,19 @@
         '[GetasMart Admin] Gagal menghapus produk:',
         err
       );
+
+
+      if (
+        isAuthError(err)
+      ) {
+
+        forceRelogin(
+          'Sesi admin telah berakhir. Silakan login kembali.'
+        );
+
+
+        return;
+      }
 
 
       window.alert(
@@ -1142,8 +2034,13 @@
 
   function rowHTML(
     id,
-    p
+    product
   ) {
+
+    const p =
+      product || {};
+
+
     const statusBadge =
       p.active !== false
 
@@ -1178,12 +2075,30 @@
         : '';
 
 
+    const category =
+      p.categoryLabel ||
+      CATEGORY_LABELS[
+        p.category
+      ] ||
+      p.category ||
+      '-';
+
+
+    const price =
+      normalizeNumber(
+        p.price,
+        0
+      );
+
+
     return `
       <tr>
 
-        <td class="px-4 py-3">
+        <td
+          class="px-4 py-3">
 
-          <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-3">
 
             <img
               src="${esc(p.imgMain)}"
@@ -1192,11 +2107,15 @@
               alt=""
             />
 
-            <div class="min-w-0">
+            <div
+              class="min-w-0">
 
               <p
                 class="font-semibold text-gray-800 truncate">
-                ${esc(p.name || '-')}
+                ${esc(
+                  p.name ||
+                  '-'
+                )}
               </p>
 
               <div
@@ -1225,12 +2144,7 @@
           class="px-4 py-3 text-gray-600">
 
           ${esc(
-            p.categoryLabel ||
-            CATEGORY_LABELS[
-              p.category
-            ] ||
-            p.category ||
-            '-'
+            category
           )}
 
         </td>
@@ -1239,10 +2153,7 @@
         <td
           class="px-4 py-3 text-gray-600">
 
-          Rp ${normalizeNumber(
-            p.price,
-            0
-          ).toLocaleString(
+          Rp ${price.toLocaleString(
             'id-ID'
           )}
 
@@ -1253,7 +2164,8 @@
           class="px-4 py-3 text-gray-600">
 
           ${esc(
-            p.order ?? 0
+            p.order ??
+            0
           )}
 
         </td>
@@ -1282,7 +2194,9 @@
           <button
             type="button"
             data-delete="${esc(id)}"
-            data-name="${esc(p.name || '')}"
+            data-name="${esc(
+              p.name || ''
+            )}"
             class="text-sm text-red-500
             font-semibold hover:underline">
             Hapus
@@ -1296,43 +2210,52 @@
 
 
   /* =========================================================
-     LOAD PRODUCT LIST
+     LOAD PRODUCTS
   ========================================================= */
 
   async function loadProductList(
     force = false
   ) {
+
+    /* -------------------------------------------------------
+       Anti duplicate request
+    ------------------------------------------------------- */
+
     if (
       isLoadingProducts &&
       !force
     ) {
+
       return;
     }
 
 
-    const currentTime =
-      now();
+    const current =
+      getNow();
 
 
     if (
       !force &&
-      currentTime -
-      lastLoadTime <
+      current -
+        lastLoadTime <
       CONFIG.LOAD_COOLDOWN
     ) {
+
       return;
     }
 
 
     lastLoadTime =
-      currentTime;
+      current;
 
 
     isLoadingProducts =
       true;
 
 
-    setLoadError('');
+    setLoadError(
+      ''
+    );
 
 
     try {
@@ -1341,9 +2264,14 @@
         getDb();
 
 
+      /* -----------------------------------------------------
+         Loading UI
+      ----------------------------------------------------- */
+
       if (
         tableBody
       ) {
+
         tableBody.innerHTML = `
           <tr>
             <td
@@ -1356,13 +2284,19 @@
       }
 
 
-      const snap =
+      /* -----------------------------------------------------
+         Firestore Query
+      ----------------------------------------------------- */
+
+      const snapshot =
         await withTimeout(
+
           withRetry(
             () =>
+
               db
                 .collection(
-                  CONFIG.FIRESTORE_COLLECTION
+                  CONFIG.PRODUCTS_COLLECTION
                 )
                 .orderBy(
                   'order',
@@ -1370,8 +2304,13 @@
                 )
                 .get()
           )
+
         );
 
+
+      /* -----------------------------------------------------
+         Cache reset
+      ----------------------------------------------------- */
 
       productCache = {};
 
@@ -1379,41 +2318,68 @@
       const rows = [];
 
 
+      /* -----------------------------------------------------
+         Read Firestore
+      ----------------------------------------------------- */
+
       if (
-        snap &&
-        typeof snap.forEach ===
+        snapshot &&
+        typeof snapshot.forEach ===
           'function'
       ) {
 
-        snap.forEach(
+        snapshot.forEach(
           (doc) => {
-            const data =
-              doc.data() || {};
+
+            try {
+
+              const data =
+                doc.data() ||
+                {};
 
 
-            productCache[
-              doc.id
-            ] = data;
+              productCache[
+                doc.id
+              ] = data;
 
 
-            rows.push(
-              rowHTML(
-                doc.id,
-                data
-              )
-            );
+              rows.push(
+                rowHTML(
+                  doc.id,
+                  data
+                )
+              );
+
+
+            } catch (rowError) {
+
+              console.error(
+                '[GetasMart Admin] Gagal membaca row:',
+                rowError
+              );
+            }
           }
         );
       }
 
 
-      if (tableBody) {
+      /* -----------------------------------------------------
+         Render
+      ----------------------------------------------------- */
+
+      if (
+        tableBody
+      ) {
+
         tableBody.innerHTML =
           rows.join('');
       }
 
 
-      if (emptyState) {
+      if (
+        emptyState
+      ) {
+
         emptyState.classList.toggle(
           'hidden',
           rows.length > 0
@@ -1421,15 +2387,26 @@
       }
 
 
-      if (productCountEl) {
+      if (
+        productCountEl
+      ) {
+
         productCountEl.textContent =
           `${rows.length} produk`;
       }
 
 
+      setLoadError(
+        ''
+      );
+
+
       console.log(
         `[GetasMart Admin] ${rows.length} produk dimuat.`
       );
+
+
+      return rows;
 
 
     } catch (err) {
@@ -1440,7 +2417,31 @@
       );
 
 
-      if (tableBody) {
+      /* -----------------------------------------------------
+         AUTH / CREDENTIAL EXPIRED
+      ----------------------------------------------------- */
+
+      if (
+        isAuthError(err)
+      ) {
+
+        forceRelogin(
+          'Sesi admin telah berakhir. Silakan masukkan password kembali.'
+        );
+
+
+        return [];
+      }
+
+
+      /* -----------------------------------------------------
+         Normal error
+      ----------------------------------------------------- */
+
+      if (
+        tableBody
+      ) {
+
         tableBody.innerHTML = `
           <tr>
             <td
@@ -1453,14 +2454,20 @@
       }
 
 
-      if (emptyState) {
+      if (
+        emptyState
+      ) {
+
         emptyState.classList.add(
           'hidden'
         );
       }
 
 
-      if (productCountEl) {
+      if (
+        productCountEl
+      ) {
+
         productCountEl.textContent =
           '0 produk';
       }
@@ -1469,6 +2476,9 @@
       setLoadError(
         getFriendlyError(err)
       );
+
+
+      return [];
 
 
     } finally {
@@ -1480,114 +2490,22 @@
 
 
   /* =========================================================
-     EVENT HANDLERS
+     EVENT LISTENERS
   ========================================================= */
 
   function setupEventListeners() {
 
     /* -------------------------------------------------------
-       LOGIN
+       LOGIN FORM
     ------------------------------------------------------- */
 
-    if (loginForm) {
+    if (
+      loginForm
+    ) {
 
       loginForm.addEventListener(
         'submit',
-        (event) => {
-          try {
-
-            event.preventDefault();
-
-
-            const passwordEl =
-              getElement(
-                'login-password'
-              );
-
-
-            const value =
-              passwordEl?.value || '';
-
-
-            const adminPassword =
-              window.ADMIN_PASSWORD;
-
-
-            if (
-              adminPassword ===
-              undefined ||
-              adminPassword ===
-              null
-            ) {
-
-              if (loginError) {
-                loginError.textContent =
-                  'Konfigurasi password admin belum tersedia.';
-                loginError.classList.remove(
-                  'hidden'
-                );
-              }
-
-              console.error(
-                '[GetasMart Admin] window.ADMIN_PASSWORD tidak ditemukan.'
-              );
-
-              return;
-            }
-
-
-            if (
-              value ===
-              String(
-                adminPassword
-              )
-            ) {
-
-              sessionStorage.setItem(
-                CONFIG.AUTH_KEY,
-                'true'
-              );
-
-
-              if (loginError) {
-                loginError.textContent =
-                  '';
-                loginError.classList.add(
-                  'hidden'
-                );
-              }
-
-
-              showAdmin();
-
-
-            } else {
-
-              if (loginError) {
-                loginError.textContent =
-                  'Password salah.';
-                loginError.classList.remove(
-                  'hidden'
-                );
-              }
-            }
-
-          } catch (err) {
-
-            console.error(
-              '[GetasMart Admin] Login error:',
-              err
-            );
-
-            if (loginError) {
-              loginError.textContent =
-                'Terjadi kesalahan saat login.';
-              loginError.classList.remove(
-                'hidden'
-              );
-            }
-          }
-        }
+        handleLogin
       );
     }
 
@@ -1602,29 +2520,13 @@
       );
 
 
-    if (logoutBtn) {
+    if (
+      logoutBtn
+    ) {
 
       logoutBtn.addEventListener(
         'click',
-        () => {
-
-          try {
-
-            sessionStorage.removeItem(
-              CONFIG.AUTH_KEY
-            );
-
-
-            showLogin();
-
-          } catch (err) {
-
-            console.error(
-              '[GetasMart Admin] Logout error:',
-              err
-            );
-          }
-        }
+        logout
       );
     }
 
@@ -1633,19 +2535,22 @@
        ADD PRODUCT
     ------------------------------------------------------- */
 
-    const addBtn =
+    const addProductBtn =
       getElement(
         'add-product-btn'
       );
 
 
-    if (addBtn) {
+    if (
+      addProductBtn
+    ) {
 
-      addBtn.addEventListener(
+      addProductBtn.addEventListener(
         'click',
         () => {
 
           try {
+
             openModal(
               null,
               null
@@ -1664,7 +2569,7 @@
 
 
     /* -------------------------------------------------------
-       MODAL CLOSE
+       CLOSE MODAL
     ------------------------------------------------------- */
 
     const modalCloseBtn =
@@ -1673,7 +2578,9 @@
       );
 
 
-    if (modalCloseBtn) {
+    if (
+      modalCloseBtn
+    ) {
 
       modalCloseBtn.addEventListener(
         'click',
@@ -1683,7 +2590,7 @@
 
 
     /* -------------------------------------------------------
-       MODAL CANCEL
+       CANCEL MODAL
     ------------------------------------------------------- */
 
     const modalCancelBtn =
@@ -1692,7 +2599,9 @@
       );
 
 
-    if (modalCancelBtn) {
+    if (
+      modalCancelBtn
+    ) {
 
       modalCancelBtn.addEventListener(
         'click',
@@ -1702,10 +2611,27 @@
 
 
     /* -------------------------------------------------------
+       SAVE FORM
+    ------------------------------------------------------- */
+
+    if (
+      form
+    ) {
+
+      form.addEventListener(
+        'submit',
+        saveProduct
+      );
+    }
+
+
+    /* -------------------------------------------------------
        CLICK OUTSIDE MODAL
     ------------------------------------------------------- */
 
-    if (modal) {
+    if (
+      modal
+    ) {
 
       modal.addEventListener(
         'click',
@@ -1717,6 +2643,7 @@
               event.target ===
               modal
             ) {
+
               closeModal();
             }
 
@@ -1733,23 +2660,12 @@
 
 
     /* -------------------------------------------------------
-       SAVE
+       PRODUCT TABLE ACTIONS
     ------------------------------------------------------- */
 
-    if (form) {
-
-      form.addEventListener(
-        'submit',
-        saveProduct
-      );
-    }
-
-
-    /* -------------------------------------------------------
-       PRODUCT ACTIONS
-    ------------------------------------------------------- */
-
-    if (tableBody) {
+    if (
+      tableBody
+    ) {
 
       tableBody.addEventListener(
         'click',
@@ -1757,13 +2673,17 @@
 
           try {
 
+            /* EDIT */
+
             const editBtn =
               event.target.closest(
                 '[data-edit]'
               );
 
 
-            if (editBtn) {
+            if (
+              editBtn
+            ) {
 
               const id =
                 editBtn.dataset.edit;
@@ -1781,8 +2701,9 @@
               if (!data) {
 
                 setLoadError(
-                  'Data produk tidak ditemukan. Muat ulang halaman.'
+                  'Data produk tidak ditemukan. Silakan muat ulang.'
                 );
+
 
                 return;
               }
@@ -1798,13 +2719,17 @@
             }
 
 
+            /* DELETE */
+
             const deleteBtn =
               event.target.closest(
                 '[data-delete]'
               );
 
 
-            if (deleteBtn) {
+            if (
+              deleteBtn
+            ) {
 
               const id =
                 deleteBtn.dataset.delete;
@@ -1824,7 +2749,7 @@
           } catch (err) {
 
             console.error(
-              '[GetasMart Admin] Product action error:',
+              '[GetasMart Admin] Product table error:',
               err
             );
           }
@@ -1834,8 +2759,8 @@
 
 
     /* -------------------------------------------------------
-       ESC CLOSE MODAL
-    ------------------------------------------------------- */
+       ESC = CLOSE MODAL
+       ------------------------------------------------------- */
 
     document.addEventListener(
       'keydown',
@@ -1854,6 +2779,7 @@
                 'hidden'
               )
             ) {
+
               closeModal();
             }
           }
@@ -1918,6 +2844,12 @@
       );
 
 
+    /*
+     * PENTING:
+     * loadErrorEl sekarang diinisialisasi SEBELUM
+     * loadProductList pernah dipanggil.
+     */
+
     loadErrorEl =
       getElement(
         'load-error'
@@ -1950,42 +2882,54 @@
 
 
   /* =========================================================
-     START APPLICATION
+     APPLICATION INIT
   ========================================================= */
 
   function init() {
 
-    if (initialized) {
+    if (
+      initialized
+    ) {
+
       return;
     }
 
 
-    initialized = true;
+    initialized =
+      true;
 
 
     try {
 
+      /* -----------------------------------------------------
+         STEP 1
+         Get all DOM elements
+      ----------------------------------------------------- */
+
       initializeDom();
 
+
+      /* -----------------------------------------------------
+         STEP 2
+         Register listeners
+      ----------------------------------------------------- */
 
       setupEventListeners();
 
 
-      /*
-       * PENTING:
-       * showAdmin baru dipanggil SETELAH seluruh variable
-       * dan event listener selesai dibuat.
-       *
-       * Ini menghilangkan error:
-       *
-       * ReferenceError:
-       * can't access lexical declaration
-       * 'loadErrorEl' before initialization
-       */
+      /* -----------------------------------------------------
+         STEP 3
+         Check session
+      ----------------------------------------------------- */
 
       if (
         isAuthed()
       ) {
+
+        /*
+         * Jangan panggil loadProductList sebelum DOM
+         * benar-benar siap.
+         */
 
         showAdmin();
 
@@ -1998,14 +2942,36 @@
     } catch (err) {
 
       console.error(
-        '[GetasMart Admin] Fatal initialization error:',
+        '[GetasMart Admin] FATAL INIT ERROR:',
         err
       );
 
 
       try {
 
-        if (loginError) {
+        if (
+          loginScreen
+        ) {
+
+          loginScreen.classList.remove(
+            'hidden'
+          );
+        }
+
+
+        if (
+          adminScreen
+        ) {
+
+          adminScreen.classList.add(
+            'hidden'
+          );
+        }
+
+
+        if (
+          loginError
+        ) {
 
           loginError.textContent =
             'Admin gagal diinisialisasi. Cek Console browser.';
@@ -2016,7 +2982,7 @@
         }
 
       } catch (_) {
-        // Ignore secondary UI error
+        // Ignore secondary error
       }
     }
   }
@@ -2046,28 +3012,52 @@
 
 
   /* =========================================================
-     GLOBAL DEBUG HELPERS
+     DEBUG API
   ========================================================= */
 
   window.GetasMartAdmin = {
 
-    reloadProducts: () =>
-      loadProductList(true),
+    reloadProducts() {
+      return loadProductList(
+        true
+      );
+    },
 
-    getProductCache: () =>
-      productCache,
 
-    openProductModal: (
+    getProductCache() {
+      return productCache;
+    },
+
+
+    openProductModal(
       id,
       data
-    ) =>
-      openModal(
+    ) {
+
+      return openModal(
         id,
         data
-      ),
+      );
+    },
 
-    closeProductModal: () =>
-      closeModal()
+
+    closeProductModal() {
+
+      return closeModal();
+    },
+
+
+    forceRelogin() {
+
+      return forceRelogin();
+    },
+
+
+    isAuthed() {
+
+      return isAuthed();
+    }
   };
+
 
 })();
